@@ -484,6 +484,20 @@ class Surface_Of_Revolution extends Grid_Patch      // SURFACE OF REVOLUTION: Pr
     }
 }
 
+window.Surface_Of_Revolution_Y = window.classes.Surface_Of_Revolution_Y =
+    class Surface_Of_Revolution_Y extends Grid_Patch      // SURFACE OF REVOLUTION: Produce a curved "sheet" of triangles with rows and columns.
+      // Begin with an input array of points, defining a 1D path curving through 3D space --
+      // now let each such point be a row.  Sweep that whole curve around the Z axis in equal
+      // steps, stopping and storing new points along the way; let each step be a column. Now
+      // we have a flexible "generalized cylinder" spanning an area until total_curvature_angle.
+    { constructor( rows, columns, points, texture_coord_range, total_curvature_angle = 2*Math.PI )
+    { const row_operation =     i => Grid_Patch.sample_array( points, i ),
+        column_operation = (j,p) => Mat4.rotation( total_curvature_angle/columns, Vec.of( 0,1,0 ) ).times(p.to4(1)).to3();
+
+      super( rows, columns, row_operation, column_operation, texture_coord_range );
+    }
+    }
+
 window.Torus = window.classes.Torus =
 class Torus extends Shape                                         // Build a donut shape.  An example of a surface of revolution.
   { constructor( rows, columns )  
@@ -495,3 +509,45 @@ class Torus extends Shape                                         // Build a don
 
         Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points ] );         
       } }
+
+window.Apple_top = window.classes.Apple_top =
+    class Apple_top extends Shape
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+      let half_heart_points = Array( rows ).fill( Vec.of( .5,0,0 ) )
+          .map( (p,i,a) => Mat4.translation([ 0.5,0,0 ])
+              .times( Mat4.rotation( i/(a.length-1) *Math.PI, Vec.of( 0,0,1 ) ) )
+              .times( p.to4(1) ).to3() );
+      Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, half_heart_points ] );
+    } }
+window.Apple_bottom = window.classes.Apple_bottom =
+    class Apple_bottom extends Shape
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+      let half_heart_points = Array(rows).fill(Vec.of(1,0,0))
+          .map( (p,i,a) => Mat4.rotation(i/(a.length-1) * Math.PI/2, Vec.of( 0,0,-1))
+              .times(p.to4(1)).to3());
+      Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, half_heart_points ] );
+    } }
+
+//window.Apple= window.classes.Apple =
+//    class Apple extends Shape
+//    { constructor( rows, columns )
+//    { super( "positions", "normals", "texture_coords" );
+//      let half_heart_points = Array( rows ).fill( Vec.of( 0,0,0 ) )
+//          .map( (p,i,a) => Mat4.rotation(i/(a.length-1) * Math.PI, Vec.of(0,0,-1))
+//              .times(Mat4.translation([0,i/(a.length-1) * 1, 0]))
+//              .times(p.to4(1)).to3());
+//      Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, half_heart_points ] );
+//    } }
+
+window.Apple = window.classes.Apple =
+    class Apple extends Shape
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+      let half_heart_points = Array( rows ).fill( Vec.of( 0,0,0 ) )
+          .map( (p,i,a) => Mat4.rotation(i/(a.length-1) * Math.PI, Vec.of(0,0,-1))
+              .times(Mat4.translation([0,0.3 + 0.1 * Math.sin(i/(a.length-1) * Math.PI ), 0]))
+              .times(p.to4(1)).to3());
+      Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, half_heart_points ] );
+    } }

@@ -12,9 +12,11 @@ class Assignment_Three_Scene extends Scene_Component
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
 
         const shapes = { torus:  new Torus( 15, 15 ),
-                         torus2: new ( Torus.prototype.make_flat_shaded_version() )( 15, 15 )
- 
-                                // TODO:  Fill in as many additional shape instances as needed in this key/value table.
+                         torus2: new ( Torus.prototype.make_flat_shaded_version() )( 15, 15 ),
+                         apple_top: new Apple_top(8, 15),
+                         apple_bottom: new Apple_bottom(8, 15),
+                         apple: new Apple(100, 100),
+            // TODO:  Fill in as many additional shape instances as needed in this key/value table.
                                 //        (Requirement 1)
                        }
         this.submit_shapes( context, shapes );
@@ -22,13 +24,15 @@ class Assignment_Three_Scene extends Scene_Component
                                      // Make some Material objects available to you:
         this.materials =
           { test:     context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ), { ambient:.2 } ),
-            ring:     context.get_instance( Ring_Shader  ).material()
+            ring:     context.get_instance( Ring_Shader  ).material(),
+            apple:    context.get_instance( Phong_Shader ).material(Color.of(1,0,0,1), {ambient:0}),
+
 
                                 // TODO:  Fill in as many additional material objects as needed in this key/value table.
                                 //        (Requirement 1)
           }
 
-        this.lights = [ new Light( Vec.of( 5,-10,5,1 ), Color.of( 0, 1, 1, 1 ), 1000 ) ];
+        this.lights = [ new Light( Vec.of( 0,10,5,1 ), Color.of( 0, 1, 1, 1 ), 1000 ) ];
       }
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
       { this.key_triggered_button( "View solar system",  [ "0" ], () => this.attached = () => this.initial_camera_location );
@@ -49,7 +53,9 @@ class Assignment_Three_Scene extends Scene_Component
         // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 2 and 3)
 
 
-        this.shapes.torus2.draw( graphics_state, Mat4.identity(), this.materials.test );
+          let model_transform = Mat4.identity();
+          model_transform = model_transform.times(Mat4.rotation(t, Vec.of(1,0,0)));
+        this.shapes.apple.draw( graphics_state, model_transform, this.materials.apple );
 
       }
   }
