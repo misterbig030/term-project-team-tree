@@ -5,7 +5,7 @@ class Assignment_Three_Scene extends Scene_Component
         if( !context.globals.has_controls   ) 
           context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
 
-        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,5,20 ), Vec.of( 0,0,-10 ), Vec.of( 0,1,0 ) );
+        context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,20,20 ), Vec.of( 0,10,-10 ), Vec.of( 0,1,0 ) );
         this.initial_camera_location = Mat4.inverse( context.globals.graphics_state.camera_transform );
 
         const r = context.width/context.height;
@@ -54,9 +54,9 @@ class Assignment_Three_Scene extends Scene_Component
 
       // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 2 and 3)
 
-      let z_lower_bound = -100, z_upper_bound = 20;
+      let z_lower_bound = -80, z_upper_bound = 20;
       let y_lower_bound = -200, y_upper_bound = 0;
-      let x_lower_bound = -200, x_upper_bound = 200;
+      let x_lower_bound = -100, x_upper_bound = 100;
 
       let ground_transform = Mat4.identity();
       ground_transform = ground_transform.times(Mat4.translation(Vec.of((x_upper_bound + x_lower_bound) / 2,
@@ -68,24 +68,25 @@ class Assignment_Three_Scene extends Scene_Component
 
       //apple
       let model_transform = Mat4.identity();
+      model_transform = model_transform.times(Mat4.translation([0,3,-10]));
       model_transform = model_transform.times(Mat4.rotation(t, Vec.of(1, 0, 0)));
-      //this.shapes.apple.draw( graphics_state, model_transform, this.materials.apple );
+      this.shapes.apple.draw( graphics_state, model_transform, this.materials.apple );
 
       //grass
       let grass_transform = Mat4.identity();
       let shear_mat = Mat.of(
-          [1, 0.1, 0, 0],
+          [1, 0.1 * Math.cos( Math.PI * t) + 0.2, 0, 0],
           [0, 1, 0, 0],
           [0, 0, 1, 0],
           [0, 0, 0, 1],
       );
       let num_grass = 100;
-      var offset;
-      for (var i = x_lower_bound; i < x_upper_bound; i++) {
-        for (var j = 0; j < 10; j++) {
+      let offset;
+      for (let i = x_lower_bound; i < x_upper_bound; i+=5) {
+        for (let j = -30; j < 0; j+=5) {
           offset = Math.cos(i) * Math.cos(j);
           grass_transform = grass_transform.times(Mat4.translation([i + offset, 0, j + offset]));
-          grass_transform = grass_transform.times(Mat4.rotation(Math.PI / 10, Vec.of(0, 0, 1)));
+          grass_transform = grass_transform.times(Mat4.rotation(offset*Math.PI / 20, Vec.of(0, 0, 1)));
           grass_transform = grass_transform.times(shear_mat);
           this.shapes.grass.draw(graphics_state, grass_transform, this.materials.grass);
           grass_transform = Mat4.identity();
