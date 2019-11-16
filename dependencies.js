@@ -456,8 +456,8 @@ class Grid_Patch extends Shape              // A grid of rows and columns you ca
           if( normal.every( x => x == x ) && normal.norm() > .01 )  this.normals.push( Vec.from( normal ) );    
           else                                                      this.normals.push( Vec.of( 0,0,1 )    );
         }   
-        
-      for( var h = 0; h < rows; h++ )             // Generate a sequence like this (if #columns is 10):  
+
+      for( var h = 0; h < rows; h++ )             // Generate a sequence like this (if #columns is 10):
         for( var i = 0; i < 2 * columns; i++ )    // "1 11 0  11 1 12  2 12 1  12 2 13  3 13 2  13 3 14  4 14 3..." 
           for( var j = 0; j < 3; j++ )
             this.indices.push( h * ( columns + 1 ) + columns * ( ( i + ( j % 2 ) ) % 2 ) + ( ~~( ( j % 3 ) / 2 ) ? 
@@ -550,4 +550,31 @@ window.Apple = window.classes.Apple =
               .times(Mat4.translation([0,0.3 + 0.1 * Math.sin(i/(a.length-1) * Math.PI ), 0]))
               .times(p.to4(1)).to3());
       Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, half_heart_points ] );
-    } }
+    } };
+
+window.Grass = window.classes.Grass =
+    class Grass extends Shape
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+      let length = 2;
+      let width = 0.1;
+      let points = Array( rows ).fill(Vec.of(0,0,0))
+          .map( (p,i,a) =>
+              Mat4.translation([width * Math.sin(i/(a.length-1) * Math.PI), i/(a.length-1) * length,0])
+              .times(p.to4(1)).to3());
+      Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points ] );
+    } };
+
+window.Cube = window.classes.Cube =
+    class Cube extends Shape    // A cube inserts six square strips into its arrays.
+    { constructor()
+    { super( "positions", "normals", "texture_coords" );
+      for( var i = 0; i < 3; i++ )
+        for( var j = 0; j < 2; j++ )
+        { var square_transform = Mat4.rotation( i === 0 ? Math.PI/2 : 0, Vec.of(1, 0, 0) )
+            .times( Mat4.rotation( Math.PI * j - ( i === 1 ? Math.PI/2 : 0 ), Vec.of( 0, 1, 0 ) ) )
+            .times( Mat4.translation([ 0, 0, 1 ]) );
+          Square.insert_transformed_copy_into( this, [], square_transform );
+        }
+    }
+    };
