@@ -2,8 +2,8 @@ window.Assignment_Three_Scene = window.classes.Assignment_Three_Scene =
 class Assignment_Three_Scene extends Scene_Component
   { constructor( context, control_box )     // The scene begins by requesting the camera, shapes, and materials it will need.
       { super(   context, control_box );    // First, include a secondary Scene that provides movement controls:
-        if( !context.globals.has_controls   ) 
-          context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) ); 
+        if( !context.globals.has_controls   )
+          context.register_scene_component( new Movement_Controls( context, control_box.parentElement.insertCell() ) );
 
         context.globals.graphics_state.camera_transform = Mat4.look_at( Vec.of( 0,20,20 ), Vec.of( 0,10,-10 ), Vec.of( 0,1,0 ) );
         this.initial_camera_location = Mat4.inverse( context.globals.graphics_state.camera_transform );
@@ -17,7 +17,7 @@ class Assignment_Three_Scene extends Scene_Component
                          apple: new Apple(100, 100),
                           apple_2: new Subdivision_Sphere(4),
                        }
-        shapes.box_1.texture_coords = shapes.box_1.texture_coords.map(v => Vec.of(v[0] * 2, v[1] * 3));
+        //shapes.box_1.texture_coords = shapes.box_1.texture_coords.map(v => Vec.of(v[0] * 2, v[1] * 3));
         this.submit_shapes( context, shapes );
 
                                      // Make some Material objects available to you:
