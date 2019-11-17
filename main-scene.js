@@ -17,8 +17,9 @@ class Assignment_Three_Scene extends Scene_Component
                          apple: new Apple(100, 100),
                           apple_2: new Subdivision_Sphere(4),
                        }
+        shapes.box_1.texture_coords = shapes.box_1.texture_coords.map(v => Vec.of(v[0] * 2, v[1] * 3));
         this.submit_shapes( context, shapes );
-                                     
+
                                      // Make some Material objects available to you:
         this.materials =
           { test:     context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ), { ambient:.2 } ),
@@ -72,12 +73,11 @@ class Assignment_Three_Scene extends Scene_Component
       //grass
       let grass_transform = Mat4.identity();
       let shear_mat = Mat.of(
-          [1, 0.1 * Math.cos( Math.PI * t) + 0.2, 0, 0],
+          [1, 0.1 * Math.cos( Math.PI * t) + 0.3, 0, 0],
           [0, 1, 0, 0],
           [0, 0, 1, 0],
           [0, 0, 0, 1],
       );
-      let num_grass = 100;
       let offset;
       for (let i = -50; i < 50; i+=1.5) {
         for (let j = -60; j < -10; j+=1.5) {
