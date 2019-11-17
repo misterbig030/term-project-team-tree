@@ -14,11 +14,8 @@ class Assignment_Three_Scene extends Scene_Component
         const shapes = {
                          ground: new Cube(),
                           grass: new Grass(5,10),
-                         apple_top: new Apple_top(8, 15),
-                         apple_bottom: new Apple_bottom(8, 15),
                          apple: new Apple(100, 100),
-            // TODO:  Fill in as many additional shape instances as needed in this key/value table.
-                                //        (Requirement 1)
+                          apple_2: new Subdivision_Sphere(4),
                        }
         this.submit_shapes( context, shapes );
                                      
@@ -26,7 +23,7 @@ class Assignment_Three_Scene extends Scene_Component
         this.materials =
           { test:     context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ), { ambient:.2 } ),
             apple:    context.get_instance( Phong_Shader ).material(Color.of(1,0,0,1), {ambient:0}),
-              ground:   context.get_instance( Phong_Shader ).material(Color.of(153/255,76/255,0,1), {ambient:0.5}),
+              ground:   context.get_instance( Phong_Shader ).material(Color.of(153/255,76/255,0,1), {ambient:0.4}),
               grass:   context.get_instance( Phong_Shader ).material(Color.of(0,1,0,1), {ambient:0.5}),
 
 
@@ -70,7 +67,7 @@ class Assignment_Three_Scene extends Scene_Component
       let model_transform = Mat4.identity();
       model_transform = model_transform.times(Mat4.translation([0,3,-10]));
       model_transform = model_transform.times(Mat4.rotation(t, Vec.of(1, 0, 0)));
-      this.shapes.apple.draw( graphics_state, model_transform, this.materials.apple );
+      this.shapes.apple_2.draw( graphics_state, model_transform, this.materials.apple );
 
       //grass
       let grass_transform = Mat4.identity();
@@ -82,8 +79,8 @@ class Assignment_Three_Scene extends Scene_Component
       );
       let num_grass = 100;
       let offset;
-      for (let i = x_lower_bound; i < x_upper_bound; i+=5) {
-        for (let j = -30; j < 0; j+=5) {
+      for (let i = -50; i < 50; i+=1.5) {
+        for (let j = -60; j < -10; j+=1.5) {
           offset = Math.cos(i) * Math.cos(j);
           grass_transform = grass_transform.times(Mat4.translation([i + offset, 0, j + offset]));
           grass_transform = grass_transform.times(Mat4.rotation(offset*Math.PI / 20, Vec.of(0, 0, 1)));
