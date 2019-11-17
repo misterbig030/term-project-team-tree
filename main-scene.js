@@ -12,7 +12,8 @@ class Assignment_Three_Scene extends Scene_Component
         context.globals.graphics_state.projection_transform = Mat4.perspective( Math.PI/4, r, .1, 1000 );
 
         const shapes = { torus:  new Torus( 15, 15 ),
-                         torus2: new ( Torus.prototype.make_flat_shaded_version() )( 15, 15 )
+                         torus2: new ( Torus.prototype.make_flat_shaded_version() )( 15, 15 ),
+                          cylinder: new Cylinder(15,15)
  
                                 // TODO:  Fill in as many additional shape instances as needed in this key/value table.
                                 //        (Requirement 1)
@@ -22,7 +23,8 @@ class Assignment_Three_Scene extends Scene_Component
                                      // Make some Material objects available to you:
         this.materials =
           { test:     context.get_instance( Phong_Shader ).material( Color.of( 1,1,0,1 ), { ambient:.2 } ),
-            ring:     context.get_instance( Ring_Shader  ).material()
+            ring:     context.get_instance( Ring_Shader  ).material(),
+            trunk:    context.get_instance( Phong_Shader).material( Color.of(102/255, 51/255, 0,1), {ambient: .3})
 
                                 // TODO:  Fill in as many additional material objects as needed in this key/value table.
                                 //        (Requirement 1)
@@ -44,12 +46,24 @@ class Assignment_Three_Scene extends Scene_Component
       { graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
-        
+        if(t > 0 && t < 3)
+        {
+          let trunk_matrix = Mat4.identity().times(Mat4.scale([1,t,1]));
+          this.shapes.cylinder.draw(graphics_state, trunk_matrix,this.materials.trunk);
+        }
+        else
+        {
+          let trunk_matrix = Mat4.identity().times(Mat4.scale([1,3,1]));
+          this.shapes.cylinder.draw(graphics_state, trunk_matrix,this.materials.trunk);
+        }
+
+
+
 
         // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 2 and 3)
 
 
-        this.shapes.torus2.draw( graphics_state, Mat4.identity(), this.materials.test );
+        //this.shapes.torus2.draw( graphics_state, Mat4.identity(), this.materials.test );
 
       }
   }
@@ -98,6 +112,42 @@ class Ring_Shader extends Shader              // Subclasses of Shader each store
         }`;           // TODO:  Complete the main function of the fragment shader (Extra Credit Part II).
     }
 }
+
+window.Surface_Of_Revolution_y = window.classes.Surface_Of_Revolution_y =
+    class Surface_Of_Revolution_y extends Grid_Patch      // SURFACE OF REVOLUTION: Produce a curved "sheet" of triangles with rows and columns.
+      // Begin with an input array of points, defining a 1D path curving through 3D space --
+      // now let each such point be a row.  Sweep that whole curve around the Z axis in equal
+      // steps, stopping and storing new points along the way; let each step be a column. Now
+      // we have a flexible "generalized cylinder" spanning an area until total_curvature_angle.
+    { constructor( rows, columns, points, texture_coord_range, total_curvature_angle = 2*Math.PI )
+    { const row_operation =     i => Grid_Patch.sample_array( points, i ),
+        column_operation = (j,p) => Mat4.rotation( total_curvature_angle/columns, Vec.of( 0,1,0 ) ).times(p.to4(1)).to3();
+
+      super( rows, columns, row_operation, column_operation, texture_coord_range );
+    }
+    }
+
+window.Cylinder = window.classes.Cylinder =
+    class Cylinder extends Shape                                         // Build a donut shape.  An example of a surface of revolution.
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+      const lower = Array( rows ).fill( Vec.of( 0,0,0 ) )
+          .map( (p,i,a) => Mat4.translation([ i/(a.length-1),0,0 ])
+              .times( p.to4(1) ).to3() );
+      const side = Array( rows ).fill( Vec.of( 1,0,0 ) )
+          .map( (p,i,a) => Mat4.translation([ 0,2*(i/(a.length-1)),0 ])
+              .times( p.to4(1) ).to3() );
+      const upper = Array( rows ).fill( Vec.of( 1,2,0 ) )
+          .map( (p,i,a) => Mat4.translation([ -1*(i/(a.length-1)),0,0])
+              .times( p.to4(1) ).to3() );
+
+
+      const rect = (lower.concat(side)).concat(upper);
+
+
+
+      Surface_Of_Revolution_y.insert_transformed_copy_into( this, [ rows, columns, rect ] );
+    } }
 
 window.Grid_Sphere = window.classes.Grid_Sphere =
 class Grid_Sphere extends Shape           // With lattitude / longitude divisions; this means singularities are at 

@@ -495,3 +495,4 @@ class Torus extends Shape                                         // Build a don
 
         Surface_Of_Revolution.insert_transformed_copy_into( this, [ rows, columns, circle_points ] );         
       } }
+
