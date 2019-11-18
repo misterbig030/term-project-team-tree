@@ -22,14 +22,31 @@ window.Grass = window.classes.Grass =
         Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points ] );
     } };
 
-window.Row_Grass = window.classes.Row_Grass = class Row_Grass extends Shape{
-    constructor(rows, columns) {
-        super("position", "normals", "texture_coords");
-        let grass = new Grass(rows, columns);
-
+window.Row_Grass = window.classes.Row_Grass =
+    class Row_Grass extends Shape                                   // An axis set with arrows, made out of a lot of various primitives.
+    { constructor(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap=1)
+    { super( "positions", "normals", "texture_coords" );
+        this.draw_row_grass();
+        this.draw_row_grass(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap)
     }
-}
+        draw_row_grass(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap)
+        {
+            let shear_mat;
+            let offset;
+            for (let i = x_lower_bound; i< x_upper_bound; i+=gap){
+                shear_mat = Mat.of(
+                    [1, 0.1 * Math.cos(Math.PI * i) + 0.3, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1],
+                );
+                Grass.insert_transformed_copy_into( this, [rows, columns ],Mat4.translation([ i + Math.random(), 0, 0])
+                    .times(Mat4.rotation((Math.random()-0.5) * Math.PI, Vec.of(0,1,0)))
+                    .times(shear_mat));
+            }
 
+        }
+    };
 
 window.Cube = window.classes.Cube =
     class Cube extends Shape    // A cube inserts six square strips into its arrays.
