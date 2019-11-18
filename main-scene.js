@@ -12,14 +12,20 @@ class Assignment_Three_Scene extends Scene_Component {
     const r = context.width / context.height;
     context.globals.graphics_state.projection_transform = Mat4.perspective(Math.PI / 4, r, .1, 1000);
 
+    const z_lower_bound = this.z_lower_bound = -80, z_upper_bound  = this.z_upper_bound = 20;
+    const y_lower_bound = this.y_lower_bound = -200, y_upper_bound  = this.y_upper_bound = 0;
+    const x_lower_bound = this.x_lower_bound = -100, x_upper_bound  = this.x_upper_bound = 100;
+    const grass_gap = this.grass_gap = 1;
+
     const shapes = {
       ground: new Cube(),
       grass: new Grass(5, 10),
+      row_grass: new Row_Grass(5, 10, this.x_lower_bound, this.x_upper_bound, this.z_lower_bound, this.z_upper_bound, grass_gap),
       apple: new Apple(100, 100),
       apple_2: new Subdivision_Sphere(4),
       cylinder: new Cylinder(15, 15)
     }
-    //shapes.box_1.texture_coords = shapes.box_1.texture_coords.map(v => Vec.of(v[0] * 2, v[1] * 3));
+    //shapes.apple.texture_coords = shapes.box_1.texture_coords.map(v => Vec.of(v[0] * 2, v[1] * 3));
     this.submit_shapes(context, shapes);
 
     // Make some Material objects available to you:
@@ -29,7 +35,7 @@ class Assignment_Three_Scene extends Scene_Component {
           apple: context.get_instance(Phong_Shader).material(Color.of(1, 0, 0, 1), {ambient: 0}),
           ground: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
           grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
-          trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .3})
+          trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .3}),
 
         }
 
@@ -57,25 +63,32 @@ class Assignment_Three_Scene extends Scene_Component {
 
     // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 2 and 3)
     //cylinder
+    let trunk_shear = Mat.of(
+        [1, 0.1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1],
+    );
+    let trunk_matrix = Mat4.identity();
+    trunk_matrix = trunk_matrix.times(Mat4.translation([0,0,-20]));
     if (t > 0 && t < 3) {
-      let trunk_matrix = Mat4.identity().times(Mat4.scale([1, t, 1]));
+      trunk_matrix = trunk_matrix.times(trunk_shear);
+      trunk_matrix = trunk_matrix.times(Mat4.scale([1,t,1]));
       this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
     } else {
-      let trunk_matrix = Mat4.identity().times(Mat4.scale([1, 3, 1]));
+      trunk_matrix = trunk_matrix.times(trunk_shear);
+      trunk_matrix = trunk_matrix.times(Mat4.scale([1,3,1]));
       this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
     }
 
 
-    let z_lower_bound = -80, z_upper_bound = 20;
-    let y_lower_bound = -200, y_upper_bound = 0;
-    let x_lower_bound = -100, x_upper_bound = 100;
 
     let ground_transform = Mat4.identity();
-    ground_transform = ground_transform.times(Mat4.translation(Vec.of((x_upper_bound + x_lower_bound) / 2,
-        (y_upper_bound + y_lower_bound) / 2, (z_upper_bound + z_lower_bound) / 2)));
+    ground_transform = ground_transform.times(Mat4.translation(Vec.of((this.x_upper_bound + this.x_lower_bound) / 2,
+        (this.y_upper_bound + this.y_lower_bound) / 2, (this.z_upper_bound + this.z_lower_bound) / 2)));
     ground_transform = ground_transform.times(Mat4.rotation(Math.PI / 2, Vec.of(1, 0, 0)));
-    ground_transform = ground_transform.times(Mat4.scale([(x_upper_bound - x_lower_bound) / 2,
-      (z_upper_bound - z_lower_bound) / 2, (y_upper_bound - y_lower_bound) / 2]));
+    ground_transform = ground_transform.times(Mat4.scale([(this.x_upper_bound - this.x_lower_bound) / 2,
+      (this.z_upper_bound - this.z_lower_bound) / 2, (this.y_upper_bound - this.y_lower_bound) / 2]));
     this.shapes.ground.draw(graphics_state, ground_transform, this.materials.ground);
 
     //apple
@@ -85,23 +98,21 @@ class Assignment_Three_Scene extends Scene_Component {
     this.shapes.apple_2.draw(graphics_state, model_transform, this.materials.apple);
 
     //grass
-    let grass_transform = Mat4.identity();
     let shear_mat = Mat.of(
-        [1, 0.1 * Math.cos(Math.PI * t) + 0.3, 0, 0],
+        [1, 0.1 * Math.cos(Math.PI * t) + 0.2, 0, 0],
         [0, 1, 0, 0],
         [0, 0, 1, 0],
         [0, 0, 0, 1],
     );
+    let grass_transform = Mat4.identity();
     let offset;
-    for (let i = -50; i < 50; i += 1.5) {
-      for (let j = -60; j < -10; j += 1.5) {
-        offset = Math.cos(i) * Math.cos(j);
-        grass_transform = grass_transform.times(Mat4.translation([i + offset, 0, j + offset]));
-        grass_transform = grass_transform.times(Mat4.rotation(offset * Math.PI / 20, Vec.of(0, 0, 1)));
+    //for (let i = z_lower_bound; i < z_upper_bound; i += 1) {
+    for (let i = this.z_lower_bound; i < this.z_upper_bound; i += this.grass_gap) {
+        offset = Math.cos(i)**2;
+        grass_transform = grass_transform.times(Mat4.translation([offset, 0, i + offset]));
         grass_transform = grass_transform.times(shear_mat);
-        this.shapes.grass.draw(graphics_state, grass_transform, this.materials.grass);
+        this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
         grass_transform = Mat4.identity();
-      }
     }
   }
 }
