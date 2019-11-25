@@ -6,7 +6,8 @@ class Assignment_Three_Scene extends Scene_Component {
     if (!context.globals.has_controls)
       context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
-    context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 20), Vec.of(0, 10, -10), Vec.of(0, 1, 0));
+    //context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 10, -10), Vec.of(0, 1, 0))
+      context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 0, 0), Vec.of(0, 1, 0));
     this.initial_camera_location = Mat4.inverse(context.globals.graphics_state.camera_transform);
 
     const r = context.width / context.height;
@@ -20,22 +21,38 @@ class Assignment_Three_Scene extends Scene_Component {
     const shapes = {
       ground: new Cube(),
       grass: new Grass(5, 10),
-      row_grass: new Row_Grass(5, 10, this.x_lower_bound, this.x_upper_bound, this.z_lower_bound, this.z_upper_bound, grass_gap),
-      apple: new Apple(100, 100),
+      row_grass: new Row_Grass(5, 10, this.x_lower_bound, this.x_upper_bound, this.z_lower_bound, this.z_upper_bound, this.grass_gap),
+      apple: new Apple(10, 10),
       apple_2: new Subdivision_Sphere(4),
-      cylinder: new Cylinder(15, 15)
+      cylinder: new Cylinder(15, 15),
+      test: new Test(),
     }
-    //shapes.apple.texture_coords = shapes.box_1.texture_coords.map(v => Vec.of(v[0] * 2, v[1] * 3));
+    shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
+    shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
+    //for (let i=0; i<shapes.cylinder.positions.length; i++){
+    //  shapes.cylinder.positions[i][0] += shapes.cylinder.positions[i][1]**2;
+    //}
+
     this.submit_shapes(context, shapes);
 
     // Make some Material objects available to you:
     this.materials =
         {
-          test: context.get_instance(Phong_Shader).material(Color.of(1, 1, 0, 1), {ambient: .2}),
-          apple: context.get_instance(Phong_Shader).material(Color.of(1, 0, 0, 1), {ambient: 0}),
+          test: context.get_instance(Phong_Shader_Test).material(
+              Color.of(0.3, 0, 0.15, 1), {
+                ambient: .5,
+                texture: context.get_instance("assets/wood_texture.jpg"),
+              }
+              ),
+          apple: context.get_instance(Apple_Shader).material(
+              Color.of(0,0,0,1),{
+                ambient: 1,
+                texture: context.get_instance("assets/apple-texture.jpg"),
+              }
+          ),
           ground: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
-          grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
-          trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .3}),
+          grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 0), {ambient: 0.5}),
+          trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
 
         }
 
@@ -54,7 +71,8 @@ class Assignment_Three_Scene extends Scene_Component {
     this.new_line();
     this.key_triggered_button("Attach to planet 5", ["5"], () => this.attached = () => this.planet_5);
     this.key_triggered_button("Attach to moon", ["m"], () => this.attached = () => this.moon);
-  }
+  };
+
 
   display(graphics_state) {
     graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
@@ -63,6 +81,8 @@ class Assignment_Three_Scene extends Scene_Component {
 
     // TODO:  Fill in matrix operations and drawing code to draw the solar system scene (Requirements 2 and 3)
     //cylinder
+
+
     let trunk_shear = Mat.of(
         [1, 0.1, 0, 0],
         [0, 1, 0, 0],
@@ -71,14 +91,14 @@ class Assignment_Three_Scene extends Scene_Component {
     );
     let trunk_matrix = Mat4.identity();
     trunk_matrix = trunk_matrix.times(Mat4.translation([0,0,-20]));
-    if (t > 0 && t < 3) {
+    if (t > 0 && t < 5) {
       trunk_matrix = trunk_matrix.times(trunk_shear);
       trunk_matrix = trunk_matrix.times(Mat4.scale([1,t,1]));
-      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
+//      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
     } else {
       trunk_matrix = trunk_matrix.times(trunk_shear);
-      trunk_matrix = trunk_matrix.times(Mat4.scale([1,3,1]));
-      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
+      trunk_matrix = trunk_matrix.times(Mat4.scale([1,5,1]));
+//      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
     }
 
 
@@ -95,7 +115,8 @@ class Assignment_Three_Scene extends Scene_Component {
     let model_transform = Mat4.identity();
     model_transform = model_transform.times(Mat4.translation([0, 3, -10]));
     model_transform = model_transform.times(Mat4.rotation(t, Vec.of(1, 0, 0)));
-    this.shapes.apple_2.draw(graphics_state, model_transform, this.materials.apple);
+    model_transform = model_transform.times(Mat4.scale([4,4,4]));
+//    this.shapes.apple.draw(graphics_state, model_transform, this.materials.apple);
 
     //grass
     let shear_mat = Mat.of(
@@ -106,7 +127,6 @@ class Assignment_Three_Scene extends Scene_Component {
     );
     let grass_transform = Mat4.identity();
     let offset;
-    //for (let i = z_lower_bound; i < z_upper_bound; i += 1) {
     for (let i = this.z_lower_bound; i < this.z_upper_bound; i += this.grass_gap) {
         offset = Math.cos(i)**2;
         grass_transform = grass_transform.times(Mat4.translation([offset, 0, i + offset]));
@@ -114,6 +134,60 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
         grass_transform = Mat4.identity();
     }
+
+
+
+
+    //testing something:
+    if(t > 0){
+      this.materials.grass.color = Color.of(0,1,0,1);
+    }
+    this.shapes.test.draw(graphics_state, Mat4.identity(), this.materials.test);
+
+
+
+
   }
 }
+
+class Apple_Shader extends Phong_Shader {
+  fragment_glsl_code()           // ********* FRAGMENT SHADER *********
+  {
+    // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
+    return `
+        uniform sampler2D texture;
+        void main()
+        {
+          if( GOURAUD || COLOR_NORMALS )
+          { gl_FragColor = VERTEX_COLOR;
+            return;
+          }
+          // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
+          // Otherwise, we already have final colors to smear (interpolate) across vertices.
+          // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
+          // Phong shading is not to be confused with the Phong Reflection Model.
+          // Sample the texture image in the correct place.
+          // Compute an initial (ambient) color:
+
+          vec4 tex_color = texture2D( texture, f_tex_coord );
+
+          /* 2D rotation matrix */
+           //float theta = animation_time;
+           //mat2 r = mat2( cos(theta), sin(theta), -sin(theta), cos(theta));
+           //float t = 0.5;
+           //vec4 tex_color = texture2D( texture, r * (f_tex_coord.xy - t) + t);
+
+          if( USE_TEXTURE )
+            gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient,
+              shapeColor.w * tex_color.w );
+          else
+            gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
+
+          gl_FragColor.xyz += phong_model_lights( N );
+          // Compute the final color with contributions from lights.
+        }
+        `;
+  }
+}
+
 
