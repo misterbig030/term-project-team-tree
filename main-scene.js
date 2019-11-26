@@ -7,7 +7,7 @@ class Assignment_Three_Scene extends Scene_Component {
       context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
     //context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 10, -10), Vec.of(0, 1, 0))
-      context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 0, 0), Vec.of(0, 1, 0));
+      context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 0, -10), Vec.of(0, 1, 0));
     this.initial_camera_location = Mat4.inverse(context.globals.graphics_state.camera_transform);
 
     const r = context.width / context.height;
@@ -42,6 +42,7 @@ class Assignment_Three_Scene extends Scene_Component {
               Color.of(0.3, 0, 0.15, 1), {
                 ambient: .5,
                 texture: context.get_instance("assets/wood_texture.jpg"),
+                  offset: 8,
               }
               ),
           apple: context.get_instance(Apple_Shader).material(
@@ -51,26 +52,21 @@ class Assignment_Three_Scene extends Scene_Component {
               }
           ),
           ground: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
-          grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 0), {ambient: 0.5}),
+          grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
           trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
 
         }
 
     this.lights = [new Light(Vec.of(0, 10, 5, 1), Color.of(0, 1, 1, 1), 1000)];
+    this.tree_pause = false;
+    this.tree_t = 0;
   }
 
   make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
   {
     this.key_triggered_button("View solar system", ["0"], () => this.attached = () => this.initial_camera_location);
-    this.new_line();
-    this.key_triggered_button("Attach to planet 1", ["1"], () => this.attached = () => this.planet_1);
-    this.key_triggered_button("Attach to planet 2", ["2"], () => this.attached = () => this.planet_2);
-    this.new_line();
-    this.key_triggered_button("Attach to planet 3", ["3"], () => this.attached = () => this.planet_3);
-    this.key_triggered_button("Attach to planet 4", ["4"], () => this.attached = () => this.planet_4);
-    this.new_line();
-    this.key_triggered_button("Attach to planet 5", ["5"], () => this.attached = () => this.planet_5);
-    this.key_triggered_button("Attach to moon", ["m"], () => this.attached = () => this.moon);
+      this.key_triggered_button("tree pause/resume", ["1"], () => this.tree_pause = !this.tree_pause);
+      this.key_triggered_button("tree start reset", ["2"], () => {this.tree_t = 0; this.tree_pause = false;});
   };
 
 
@@ -138,14 +134,11 @@ class Assignment_Three_Scene extends Scene_Component {
 
 
 
-    //testing something:
-    if(t > 0){
-      this.materials.grass.color = Color.of(0,1,0,1);
-    }
-    this.shapes.test.draw(graphics_state, Mat4.identity(), this.materials.test);
-
-
-
+    //testing pratical system:
+      if (!this.tree_pause){
+          this.tree_t += dt;
+      }
+    this.shapes.test.draw(graphics_state, Mat4.translation([0,0,-10]), this.materials.test.override({offset:this.tree_t}));
 
   }
 }

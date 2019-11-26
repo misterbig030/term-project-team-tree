@@ -70,25 +70,27 @@ window.Test = window.classes.Test =
     { super( "positions", "normals", "texture_coords" );
         let gap = 1;
         let height = 40;
+        let base_r = 10;
         for (let i=0; i<height; i+=gap){
-            this.draw_base_circle(gap, Mat4.translation([0,i,0]));
+            //this.draw_base_circle(gap, Mat4.translation([0,i,0]));
+            this.draw_base_circle(gap, base_r, i, Mat4.translation([0.1*Math.cos(i),i,0.1*Math.sin(i)]));
         }
 
     }
-    draw_base_circle(gap, model_transform = Mat4.identity()){
+    draw_base_circle(gap, r, height, model_transform = Mat4.identity()){
         let base_transform;
         let c = 0;
-        for (let i=0; i<10; i+=gap){
+        for (let i=0; i<r; i+=gap*0.5){
             //c = number of spheres to draw one circle
             c = 2 * Math.PI * i;
             for (let j=0; j<c; j+=1){
                 base_transform = Mat4.identity();
-                base_transform = base_transform.times(Mat4.scale([0.2,0.2,0.2]));
+                base_transform = base_transform.times(Mat4.scale([0.2, 0.2,0.2]));
                 base_transform = base_transform.times(model_transform);
                 base_transform = base_transform.times(Mat4.rotation(j/c * 2 * Math.PI, Vec.of(0,1,0)));
                 base_transform = base_transform.times(Mat4.translation([i,0,0]));
-                //Subdivision_Sphere.insert_transformed_copy_into( this, [4], Mat4.scale([0.1,0.1,0.1]).times(Mat4.translation([1*Math.cos(i),4+i,1*Math.cos(i)])) );
                 Cube.insert_transformed_copy_into( this, [], base_transform);
+                //Subdivision_Sphere.insert_transformed_copy_into( this, [2], base_transform);
             }
         }
 
@@ -123,7 +125,7 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
         // of the old color into the result.  Finally, an image is displayed onscreen.
     { material( color, properties )     // Define an internal class "Material" that stores the standard settings found in Phong lighting.
     { return new class Material       // Possible properties: ambient, diffusivity, specularity, smoothness, gouraud, texture.
-    { constructor( shader, color = Color.of( 0,0,0,1 ), ambient = 0, diffusivity = 1, specularity = 1, smoothness = 40 )
+    { constructor( shader, color = Color.of( 0,0,0,1 ), ambient = 0, diffusivity = 1, specularity = 1, smoothness = 40, offset=8.0)
     { Object.assign( this, { shader, color, ambient, diffusivity, specularity, smoothness } );  // Assign defaults.
         Object.assign( this, properties );                                                        // Optionally override defaults.
     }
@@ -151,6 +153,7 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
         varying vec4 VERTEX_COLOR;            // pixel fragment's proximity to each of the 3 vertices (barycentric interpolation).
         varying vec3 L[N_LIGHTS], H[N_LIGHTS];
         varying float dist[N_LIGHTS];
+        varying vec3 position;
 
         vec3 phong_model_lights( vec3 N )
           { vec3 result = vec3(0.0);
@@ -176,10 +179,11 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
 
         void main()
         { 
+          position = object_space_pos;
           //gl_Position = projection_camera_model_transform * vec4(object_space_pos, 1.0);     // The vertex's final resting place (in NDCS).
           //gl_Position = projection_camera_model_transform * vec4(object_space_pos.x+mod(animation_time, 4.0), object_space_pos.yz, 1.0);     // The vertex's final resting place (in NDCS).
           //if (object_space_pos.y < animation_time && abs(object_space_pos.x) < 0.2*animation_time && abs(object_space_pos.z) < 0.2*animation_time){
-          if (distance(object_space_pos, vec3(0,0,0)) <  0.48 * animation_time && distance(object_space_pos, vec3(0,object_space_pos.y,0))<0.12*animation_time){
+          if (distance(object_space_pos, vec3(0,0,0)) <  0.76 * animation_time && distance(object_space_pos, vec3(0,object_space_pos.y,0))<0.19*animation_time){
             gl_Position = projection_camera_model_transform * vec4(object_space_pos, 1.0);     // The vertex's final resting place (in NDCS).
           }
           N = normalize( inverse_transpose_modelview * normal );                             // The final normal vector in screen space.
@@ -224,7 +228,7 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
             return;
           }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
                                             // Phong shading is not to be confused with the Phong Reflection Model.
-          vec4 tex_color = texture2D( texture, f_tex_coord );                         // Sample the texture image in the correct place.
+          vec4 tex_color = texture2D( texture, vec2(f_tex_coord.x * cos(position.x + position.z), f_tex_coord.y*cos(position.y + position.z)));                         // Sample the texture image in the correct place.
                                                                                       // Compute an initial (ambient) color:
           if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w );
           else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
@@ -232,10 +236,11 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
         }`;
         }
         // Define how to synchronize our JavaScript's variables to the GPU's:
-        update_GPU( g_state, model_transform, material, gpu = this.g_addrs, gl = this.gl )
+        update_GPU( g_state, model_transform, material, gpu = this.g_addrs, gl = this.gl)
         {                              // First, send the matrices to the GPU, additionally cache-ing some products of them we know we'll need:
             this.update_matrices( g_state, model_transform, gpu, gl );
-            gl.uniform1f ( gpu.animation_time_loc, g_state.animation_time / 1000 );
+            //gl.uniform1f ( gpu.animation_time_loc, g_state.animation_time / 1000 );
+            gl.uniform1f ( gpu.animation_time_loc, material.offset );
 
             if( g_state.gouraud === undefined ) { g_state.gouraud = g_state.color_normals = false; }    // Keep the flags seen by the shader
             gl.uniform1i( gpu.GOURAUD_loc,        g_state.gouraud || material.gouraud );                // program up-to-date and make sure
