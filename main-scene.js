@@ -18,6 +18,9 @@ class Assignment_Three_Scene extends Scene_Component {
     const x_lower_bound = this.x_lower_bound = -100, x_upper_bound  = this.x_upper_bound = 100;
     const grass_gap = this.grass_gap = 1;
 
+    const cylinder_r= 1;
+    const cylinder_h = 4;
+
     const shapes = {
       ground: new Cube(),
       grass: new Grass(5, 10),
@@ -25,7 +28,7 @@ class Assignment_Three_Scene extends Scene_Component {
       apple: new Apple(10, 10),
       apple_2: new Subdivision_Sphere(4),
       cylinder: new Cylinder(15, 15),
-      test: new Test(),
+      main_trunk: new Pratical_Cylinder(cylinder_r, cylinder_h),
     }
     shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
     shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
@@ -38,11 +41,16 @@ class Assignment_Three_Scene extends Scene_Component {
     // Make some Material objects available to you:
     this.materials =
         {
-          test: context.get_instance(Phong_Shader_Test).material(
-              Color.of(0.3, 0, 0.15, 1), {
-                ambient: .5,
+          main_trunk: context.get_instance(Phong_Shader_Cylinder).material(
+              //Color.of(0.3, 0, 0.15, 1), {
+              Color.of(0, 0, 0, 1), {
+                ambient: 0.7,
                 texture: context.get_instance("assets/wood_texture.jpg"),
-                  offset: 8,
+                offset: 0,
+                  cylinder_r: cylinder_r,
+                  cylinder_h: cylinder_h,
+                  diffusivity: 0.5,
+                  specularity: 0.5,
               }
               ),
           apple: context.get_instance(Apple_Shader).material(
@@ -138,7 +146,7 @@ class Assignment_Three_Scene extends Scene_Component {
       if (!this.tree_pause){
           this.tree_t += dt;
       }
-    this.shapes.test.draw(graphics_state, Mat4.translation([0,0,-10]), this.materials.test.override({offset:this.tree_t}));
+    this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0,0,-10]), this.materials.main_trunk.override({offset:this.tree_t}));
 
   }
 }

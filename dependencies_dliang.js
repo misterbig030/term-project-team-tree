@@ -64,13 +64,13 @@ window.Cube = window.classes.Cube =
 
 
 //testing:
-window.Test = window.classes.Test =
-    class Test extends Shape
-    { constructor()
+window.Pratical_Cylinder = window.classes.Pratical_Cylinder =
+    class Pratical_Cylinder extends Shape
+    { constructor(r,h)
     { super( "positions", "normals", "texture_coords" );
         let gap = 1;
-        let height = 40;
-        let base_r = 10;
+        let height = h * 10;
+        let base_r = r * 10;
         for (let i=0; i<height; i+=gap){
             //this.draw_base_circle(gap, Mat4.translation([0,i,0]));
             this.draw_base_circle(gap, base_r, i, Mat4.translation([0.1*Math.cos(i),i,0.1*Math.sin(i)]));
@@ -97,8 +97,8 @@ window.Test = window.classes.Test =
     }
     };
 
-window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
-    class Phong_Shader_Test extends Shader          // THE DEFAULT SHADER: This uses the Phong Reflection Model, with optional Gouraud shading.
+window.Phong_Shader_Cylinder = window.classes.Phong_Shader_Cylinder =
+    class Phong_Shader_Cylinder extends Shader          // THE DEFAULT SHADER: This uses the Phong Reflection Model, with optional Gouraud shading.
         // Wikipedia has good defintions for these concepts.  Subclasses of class Shader each store
         // and manage a complete GPU program.  This particular one is a big "master shader" meant to
         // handle all sorts of lighting situations in a configurable way.
@@ -145,7 +145,7 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
         shared_glsl_code()            // ********* SHARED CODE, INCLUDED IN BOTH SHADERS *********
         { return `precision mediump float;
         const int N_LIGHTS = 2;             // We're limited to only so many inputs in hardware.  Lights are costly (lots of sub-values).
-        uniform float ambient, diffusivity, specularity, smoothness, animation_time, attenuation_factor[N_LIGHTS];
+        uniform float ambient, diffusivity, specularity, smoothness, animation_time, attenuation_factor[N_LIGHTS], r, h;
         uniform bool GOURAUD, COLOR_NORMALS, USE_TEXTURE;               // Flags for alternate shading methods
         uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS], shapeColor;
         varying vec3 N, E;                    // Specifier "varying" means a variable's final value will be passed from the vertex shader
@@ -228,7 +228,16 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
             return;
           }                                 // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
                                             // Phong shading is not to be confused with the Phong Reflection Model.
-          vec4 tex_color = texture2D( texture, vec2(f_tex_coord.x * cos(position.x + position.z), f_tex_coord.y*cos(position.y + position.z)));                         // Sample the texture image in the correct place.
+          //recalculate the tex_coord using the object space position
+          float tex_x;
+          if (position.z > 0.0){
+            tex_x = (position.x + r) / (4.0 * r);
+          }
+          else{
+            tex_x = 1.0 - (position.x + r) / (4.0 * r);
+          }
+          float tex_y = position.y / h / 2.0;
+          vec4 tex_color = texture2D(texture, vec2(tex_x, tex_y));
                                                                                       // Compute an initial (ambient) color:
           if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w );
           else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
@@ -241,6 +250,8 @@ window.Phong_Shader_Test = window.classes.Phong_Shader_Test =
             this.update_matrices( g_state, model_transform, gpu, gl );
             //gl.uniform1f ( gpu.animation_time_loc, g_state.animation_time / 1000 );
             gl.uniform1f ( gpu.animation_time_loc, material.offset );
+            gl.uniform1f ( gpu.r_loc, material.cylinder_r );
+            gl.uniform1f ( gpu.h_loc, material.cylinder_h );
 
             if( g_state.gouraud === undefined ) { g_state.gouraud = g_state.color_normals = false; }    // Keep the flags seen by the shader
             gl.uniform1i( gpu.GOURAUD_loc,        g_state.gouraud || material.gouraud );                // program up-to-date and make sure
