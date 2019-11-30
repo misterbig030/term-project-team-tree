@@ -26,7 +26,6 @@ window.Row_Grass = window.classes.Row_Grass =
     class Row_Grass extends Shape                                   // An axis set with arrows, made out of a lot of various primitives.
     { constructor(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap=1)
     { super( "positions", "normals", "texture_coords" );
-        this.draw_row_grass();
         this.draw_row_grass(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap)
     }
         draw_row_grass(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap)
@@ -386,7 +385,7 @@ window.Phong_Shader_Cylinder_Blended = window.classes.Phong_Shader_Cylinder_Blen
         const int N_LIGHTS = 2;             // We're limited to only so many inputs in hardware.  Lights are costly (lots of sub-values).
         uniform float ambient, diffusivity, specularity, smoothness, animation_time, attenuation_factor[N_LIGHTS];
         //uniform float ambient, diffusivity, specularity, smoothness, attenuation_factor[N_LIGHTS];
-        uniform float xz_t, y_t, r, h, y_speed, xz_speed, a, b, c;         //customized valuables
+        uniform float xz_t, y_t, r, h, y_speed, xz_speed, a, b, c, decay;         //customized valuables
         uniform bool GOURAUD, COLOR_NORMALS, USE_TEXTURE;               // Flags for alternate shading methods
         uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS], shapeColor;
         varying vec3 N, E;                    // Specifier "varying" means a variable's final value will be passed from the vertex shader
@@ -422,17 +421,16 @@ window.Phong_Shader_Cylinder_Blended = window.classes.Phong_Shader_Cylinder_Blen
         void main()
         { 
           position = object_space_pos;
-          //gl_Position = projection_camera_model_transform * vec4(object_space_pos, 1.0);     // The vertex's final resting place (in NDCS).
-          //gl_Position = projection_camera_model_transform * vec4(object_space_pos.x+mod(animation_time, 4.0), object_space_pos.yz, 1.0);     // The vertex's final resting place (in NDCS).
-          //if (object_space_pos.y < animation_time && abs(object_space_pos.x) < 0.2*animation_time && abs(object_space_pos.z) < 0.2*animation_time){
           if (distance(object_space_pos, vec3(0,0,0)) <  y_speed * y_t && distance(object_space_pos, vec3(0,object_space_pos.y,0))<xz_speed * xz_t){
             float x = object_space_pos.x + a * pow(object_space_pos.y, b);
+            x = ((1.0 - object_space_pos.y / h) * (1.0 - decay) + decay) * x;
             if (object_space_pos.y < 0.1){
                  x = object_space_pos.x;
             }
             float y = object_space_pos.y * c;
             float z = object_space_pos.z;
             gl_Position = projection_camera_model_transform * vec4(x,y,z, 1.0);     // The vertex's final resting place (in NDCS).
+            
             //gl_Position = model_transform * vec4(object_space_pos, 1.0);     // The vertex's final resting place (in NDCS).
             //float x =  gl_Position.x + 0.25 * gl_Position.y * gl_Position.y;
             //float y = gl_Position.y;
@@ -512,6 +510,8 @@ window.Phong_Shader_Cylinder_Blended = window.classes.Phong_Shader_Cylinder_Blen
             gl.uniform1f ( gpu.a_loc, material.a );
             gl.uniform1f ( gpu.b_loc, material.b );
             gl.uniform1f ( gpu.c_loc, material.c );
+            gl.uniform1f ( gpu.decay_loc, material.decay );
+            gl.uniform1f ( gpu.base_r_loc, material.base_r );
 
             if( g_state.gouraud === undefined ) { g_state.gouraud = g_state.color_normals = false; }    // Keep the flags seen by the shader
             gl.uniform1i( gpu.GOURAUD_loc,        g_state.gouraud || material.gouraud );                // program up-to-date and make sure
