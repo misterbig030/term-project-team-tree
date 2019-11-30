@@ -22,6 +22,9 @@ class Assignment_Three_Scene extends Scene_Component {
         const cylinder_h = this.cylinder_h = 4;
         const xz_speed = this.xz_speed = 0.20;
         const y_speed = this.y_speed = 1;
+        const decay = this.decay = 0.8;     //decay defines how fast the branchs gets smaller.
+                                            //For blended cylinders, top radius = 0.8 bottom radius;
+
 
         const shapes = {
             ground: new Cube(),
@@ -75,9 +78,12 @@ class Assignment_Three_Scene extends Scene_Component {
                         specularity: 0.5,
                         //blending coeficients:
                         //  x += a * pow(b, 2)
-                        a: 0.25,
-                        b: 2,
+                        a: 0,
+                        b: 1,
                         c: 1,
+
+                        decay: this.decay,
+                        base_r: 1,
                     }
                 ),
                 apple: context.get_instance(Apple_Shader).material(
@@ -196,15 +202,17 @@ class Assignment_Three_Scene extends Scene_Component {
             .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t}));
         this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0, this.cylinder_h, -10]), this.materials.main_trunk
             .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t - this.cylinder_h / this.y_speed}));
-        this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0, 2*this.cylinder_h, -10]), this.materials.main_trunk
+        this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0, 2*this.cylinder_h, -10]), this.materials.branch
             .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t - 2*this.cylinder_h / this.y_speed}));
+
+
         let start_y = 4;
         this.recursive_draw(graphics_state, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed);
-        start_y = 6;
-        this.recursive_draw(graphics_state, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed, Mat4.rotation(Math.PI, Vec.of(0,1,0)));
+
 
     }
-    recursive_draw(graphics_state, start_y, xz_t, y_t, mt = Mat4.identity()){
+    recursive_draw(graphics_state, start_y, xz_t, y_t, mt = Mat4.identity(), base_r = 1){
+
         let model_transform = Mat4.translation([0,start_y,-10]);
         model_transform = model_transform.times(mt);
         this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
