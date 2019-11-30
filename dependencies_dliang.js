@@ -9,6 +9,48 @@ window.Apple = window.classes.Apple =
         Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, half_heart_points ] );
     } };
 
+//class Apple_Shader extends Phong_Shader {
+window.Apple_Shader = window.classes.Apple_Shader =
+    class Apple_Shader extends Phong_Shader{
+    fragment_glsl_code()           // ********* FRAGMENT SHADER *********
+    {
+        // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
+        return `
+        uniform sampler2D texture;
+        void main()
+        {
+          if( GOURAUD || COLOR_NORMALS )
+          { gl_FragColor = VERTEX_COLOR;
+            return;
+          }
+          // Do smooth "Phong" shading unless options like "Gouraud mode" are wanted instead.
+          // Otherwise, we already have final colors to smear (interpolate) across vertices.
+          // If we get this far, calculate Smooth "Phong" Shading as opposed to Gouraud Shading.
+          // Phong shading is not to be confused with the Phong Reflection Model.
+          // Sample the texture image in the correct place.
+          // Compute an initial (ambient) color:
+
+          vec4 tex_color = texture2D( texture, f_tex_coord );
+
+          /* 2D rotation matrix */
+           //float theta = animation_time;
+           //mat2 r = mat2( cos(theta), sin(theta), -sin(theta), cos(theta));
+           //float t = 0.5;
+           //vec4 tex_color = texture2D( texture, r * (f_tex_coord.xy - t) + t);
+
+          if( USE_TEXTURE )
+            gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient,
+              shapeColor.w * tex_color.w );
+          else
+            gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
+
+          gl_FragColor.xyz += phong_model_lights( N );
+          // Compute the final color with contributions from lights.
+        }
+        `;
+    }
+};
+
 window.Grass = window.classes.Grass =
     class Grass extends Shape
     { constructor( rows, columns )
@@ -61,13 +103,31 @@ window.Cube = window.classes.Cube =
     }
     };
 
+window.Fake_Cube = window.classes.Fake_Cube =
+    class Fake_Cube extends Shape    // made up with two squares
+    { constructor()
+    { super( "positions", "normals", "texture_coords" );
+        Square.insert_transformed_copy_into(this, []);
+        let transform = Mat4.translation([0,1,-1]).times(Mat4.rotation(Math.PI/2, Vec.of(-1,0,0)));
+        Square.insert_transformed_copy_into(this, [], transform);
+        //for( var i = 0; i < 3; i++ )
+        //    for( var j = 0; j < 2; j++ )
+        //    { var square_transform = Mat4.rotation( i === 0 ? Math.PI/2 : 0, Vec.of(1, 0, 0) )
+        //        .times( Mat4.rotation( Math.PI * j - ( i === 1 ? Math.PI/2 : 0 ), Vec.of( 0, 1, 0 ) ) )
+        //        .times( Mat4.translation([ 0, 0, 1 ]) );
+        //        Square.insert_transformed_copy_into( this, [], square_transform );
+        //    }
+    }
+    };
+
+
 
 //testing:
 window.Pratical_Cylinder = window.classes.Pratical_Cylinder =
     class Pratical_Cylinder extends Shape
     { constructor(r,h)
     { super( "positions", "normals", "texture_coords" );
-        let gap = 0.1;
+        let gap = 0.2;
         for (let i=0; i<h; i+=gap){
             this.draw_base_circle(gap, r, i, Mat4.translation([0.0*Math.cos(i),i,0.0*Math.sin(i)]));
         }
@@ -85,7 +145,7 @@ window.Pratical_Cylinder = window.classes.Pratical_Cylinder =
                 base_transform = base_transform.times(Mat4.rotation(j/c * 2 * Math.PI, Vec.of(0,1,0)));
                 base_transform = base_transform.times(Mat4.translation([i,0,0]));
                 base_transform = base_transform.times(Mat4.scale([0.1, 0.1,0.1]));
-                Cube.insert_transformed_copy_into( this, [], base_transform);
+                Fake_Cube.insert_transformed_copy_into( this, [], base_transform);
                 //Subdivision_Sphere.insert_transformed_copy_into( this, [2], base_transform);
             }
         }
@@ -385,7 +445,7 @@ window.Phong_Shader_Cylinder_Blended = window.classes.Phong_Shader_Cylinder_Blen
         const int N_LIGHTS = 2;             // We're limited to only so many inputs in hardware.  Lights are costly (lots of sub-values).
         uniform float ambient, diffusivity, specularity, smoothness, animation_time, attenuation_factor[N_LIGHTS];
         //uniform float ambient, diffusivity, specularity, smoothness, attenuation_factor[N_LIGHTS];
-        uniform float xz_t, y_t, r, h, y_speed, xz_speed, a, b, c, decay;         //customized valuables
+        uniform float xz_t, y_t, r, h, y_speed, xz_speed, a, b, c, decay, r_percentage;         //customized valuables
         uniform bool GOURAUD, COLOR_NORMALS, USE_TEXTURE;               // Flags for alternate shading methods
         uniform vec4 lightPosition[N_LIGHTS], lightColor[N_LIGHTS], shapeColor;
         varying vec3 N, E;                    // Specifier "varying" means a variable's final value will be passed from the vertex shader
@@ -422,20 +482,14 @@ window.Phong_Shader_Cylinder_Blended = window.classes.Phong_Shader_Cylinder_Blen
         { 
           position = object_space_pos;
           if (distance(object_space_pos, vec3(0,0,0)) <  y_speed * y_t && distance(object_space_pos, vec3(0,object_space_pos.y,0))<xz_speed * xz_t){
-            float x = object_space_pos.x + a * pow(object_space_pos.y, b);
-            x = ((1.0 - object_space_pos.y / h) * (1.0 - decay) + decay) * x;
+            float x = ((1.0 - (object_space_pos.y) / h) * (1.0 - decay) + decay) * object_space_pos.x * r_percentage;
+            x = x + a * pow(object_space_pos.y, b);
             if (object_space_pos.y < 0.1){
-                 x = object_space_pos.x;
+                 x = object_space_pos.x * r_percentage;
             }
             float y = object_space_pos.y * c;
-            float z = object_space_pos.z;
+            float z = ((1.0 - object_space_pos.y / h) * (1.0 - decay) + decay) * object_space_pos.z * r_percentage;
             gl_Position = projection_camera_model_transform * vec4(x,y,z, 1.0);     // The vertex's final resting place (in NDCS).
-            
-            //gl_Position = model_transform * vec4(object_space_pos, 1.0);     // The vertex's final resting place (in NDCS).
-            //float x =  gl_Position.x + 0.25 * gl_Position.y * gl_Position.y;
-            //float y = gl_Position.y;
-            //float z = gl_Position.z;
-            //gl_Position = projection_camera_transform * vec4(x,y,z,1);
             
           }
           N = normalize( inverse_transpose_modelview * normal );                             // The final normal vector in screen space.
@@ -511,7 +565,7 @@ window.Phong_Shader_Cylinder_Blended = window.classes.Phong_Shader_Cylinder_Blen
             gl.uniform1f ( gpu.b_loc, material.b );
             gl.uniform1f ( gpu.c_loc, material.c );
             gl.uniform1f ( gpu.decay_loc, material.decay );
-            gl.uniform1f ( gpu.base_r_loc, material.base_r );
+            gl.uniform1f ( gpu.r_percentage_loc, material.r_percentage );
 
             if( g_state.gouraud === undefined ) { g_state.gouraud = g_state.color_normals = false; }    // Keep the flags seen by the shader
             gl.uniform1i( gpu.GOURAUD_loc,        g_state.gouraud || material.gouraud );                // program up-to-date and make sure
