@@ -7,7 +7,7 @@ class Assignment_Three_Scene extends Scene_Component {
             context.register_scene_component(new Movement_Controls(context, control_box.parentElement.insertCell()));
 
         //context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 10, -10), Vec.of(0, 1, 0))
-        context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 0, -10), Vec.of(0, 1, 0));
+        context.globals.graphics_state.camera_transform = Mat4.look_at(Vec.of(0, 20, 40), Vec.of(0, 8, -10), Vec.of(0, 1, 0));
         this.initial_camera_location = Mat4.inverse(context.globals.graphics_state.camera_transform);
 
         const r = context.width / context.height;
@@ -171,13 +171,13 @@ class Assignment_Three_Scene extends Scene_Component {
         );
         let grass_transform = Mat4.identity();
         let offset;
-        //for (let i = this.z_lower_bound; i < this.z_upper_bound; i += this.grass_gap) {
-        //    offset = Math.cos(i) ** 2;
-        //    grass_transform = grass_transform.times(Mat4.translation([offset, 0, i + offset]));
-        //    grass_transform = grass_transform.times(shear_mat);
-        //    this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
-        //    grass_transform = Mat4.identity();
-        //}
+        for (let i = this.z_lower_bound; i < this.z_upper_bound; i += this.grass_gap) {
+            offset = Math.cos(i) ** 2;
+            grass_transform = grass_transform.times(Mat4.translation([offset, 0, i + offset]));
+            grass_transform = grass_transform.times(shear_mat);
+            this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
+            grass_transform = Mat4.identity();
+        }
 
 
         //testing pratical system:
@@ -215,14 +215,11 @@ class Assignment_Three_Scene extends Scene_Component {
         //this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
         //    0.25, 2, 1, Mat4.translation([0,start_y,0]));
         this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
-            0.5, 1.1, 1, Mat4.translation([0,start_y,0]));
+            0.5, 1.2, 1, Mat4.translation([0,start_y,0]));
         //this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
         //    1, 1, 1, Mat4.translation([0,start_y,0]));
     }
     recursive_draw(graphics_state, start_x, start_y, xz_t, y_t, a, b, c, mt = Mat4.identity(), r_percentage = 1, pre_offset = 1){
-        if (r_percentage < 0.10){
-            return;
-        }
         //let noise = this.random_array[Math.floor((start_x + 1) * start_y * a * b * c) % 10] ** 2;
         let noise = Math.cos((start_x + 1) * start_y * a * b * c)** 2;
         //let noise = 1;
@@ -241,14 +238,38 @@ class Assignment_Three_Scene extends Scene_Component {
         //.override({xz_t: xz_t, y_t: y_t, a:1.4, b:1/1.4, c:1}));
         //calculate end point:
         //  x += a * pow(y, b)
-        for( let offset of [ 0.6, 0.98 ] ){
-            let end_x = a * Math.pow(this.cylinder_h * offset, b);
-            let end_y = this.cylinder_h * c * offset;
-            let pass_out_mt = mt.times(random_rotation).times(Mat4.translation([end_x, end_y,0]));
-            let new_c = c * 0.8;
-            if (r_percentage < 0.2 && new_c > 0)  new_c = -new_c;
-            this.recursive_draw(graphics_state, end_x, end_y, noise**0.2 * xz_t, noise**0.2 * (y_t - this.cylinder_h  * offset / this.y_speed),
-            1.00 * a, 1.5/b, new_c, pass_out_mt, r_percentage*this.decay, offset);
+        if (r_percentage > 0.10) {
+            for (let offset of [0.6, 0.98]) {
+                let end_x = a * Math.pow(this.cylinder_h * offset, b);
+                let end_y = this.cylinder_h * c * offset;
+                let pass_out_mt = mt.times(random_rotation).times(Mat4.translation([end_x, end_y, 0]));
+                let new_c = c * 0.8;
+                let new_y_t = (1 + noise) * (y_t - this.cylinder_h * offset / this.y_speed);
+                if (r_percentage < 0.2 && new_c > 0){
+                    new_c = -new_c;
+                }
+                this.recursive_draw(graphics_state, end_x, end_y, (1 + noise) * xz_t, new_y_t,
+                    1.00 * a, 1.5 / b, new_c, pass_out_mt, r_percentage * this.decay, offset);
+            }
+        }
+        if (r_percentage < 0.20){
+            for (let offset of [0.6, 0.98]) {
+                let end_x = a * Math.pow(this.cylinder_h * offset, b);
+                let end_y = this.cylinder_h * c * offset;
+                let pass_out_mt = mt.times(random_rotation).times(Mat4.translation([end_x, end_y, 0]));
+                model_transform = world_translation.times(pass_out_mt);
+                let apple_t = 0;
+                let new_y_t = (y_t - this.cylinder_h * offset / this.y_speed);
+                if (new_y_t > 0){
+                    apple_t = 0.1 * new_y_t;
+                }
+                if (apple_t > 1){
+                    apple_t = 1;
+                }
+                console.log(apple_t);
+                model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t])).times(Mat4.translation([0,-2,0]));;
+                this.shapes.grass.draw(graphics_state, model_transform, this.materials.grass.override({color: Color.of(1,0,0,1)}));
+            }
         }
     }
 }
