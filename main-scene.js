@@ -179,7 +179,9 @@ class Assignment_Three_Scene extends Scene_Component {
         if (!this.bird_pause){
             this.bird_t += dt;
         }
-        this.draw_bird(graphics_state,this.bird_t);
+        if (this.bird_t < 20 && this.bird_t > -10){
+            this.draw_bird(graphics_state,this.bird_t);
+        }
 
 
         let ground_transform = Mat4.identity();
