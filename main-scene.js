@@ -60,6 +60,7 @@ class Assignment_Three_Scene extends Scene_Component {
         this.plastic = this.clay.override({ specularity:0 });
         this.materials =
             {
+                wood: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
                 main_trunk: context.get_instance(Phong_Shader_Cylinder).material(
                     Color.of(0, 0, 0, 1), {
                         ambient: 0.5,
@@ -103,7 +104,6 @@ class Assignment_Three_Scene extends Scene_Component {
                         texture: context.get_instance("assets/apple-texture.jpg"),
                     }
                 ),
-                //ground: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
                 ground: context.get_instance(Phong_Shader).material(
                     Color.of(0, 0, 0, 1), {
                         ambient: 1,
@@ -115,7 +115,7 @@ class Assignment_Three_Scene extends Scene_Component {
                 bunch_grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
 
-            }
+            };
 
         this.lights = [new Light(Vec.of(0, 10, 5, 1), Color.of(0, 1, 1, 1), 1000)];
         this.tree_pause = false;
@@ -125,22 +125,41 @@ class Assignment_Three_Scene extends Scene_Component {
         this.tree_y_t = 1000;
         this.bird_t = -5;
         this.bird_pause = true;
+        this.current_camera = 0;
+        this.camera_lock = false;
+        this.camera_pos = [];
+        this.camera_pos.push([Vec.of(0,20,40),Vec.of(0,8,-10), Vec.of(0,1,0)]);
+        this.camera_pos.push([Vec.of(20,20,-10),Vec.of(0,8,-10), Vec.of(0,1,0)]);
+        this.camera_pos.push([Vec.of(0,20,-40),Vec.of(0,8,-10), Vec.of(0,1,0)]);
+        this.camera_pos.push([Vec.of(20,20,-10),Vec.of(0,8,-10), Vec.of(0,1,0)]);
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
     {
         //this.key_triggered_button("View solar system", ["0"], () => this.attached = () => this.initial_camera_location);
-        this.key_triggered_button("tree pause/resume", ["1"], () => this.tree_pause = !this.tree_pause);
-        this.key_triggered_button("tree start reset", ["2"], () => {
+        this.key_triggered_button("tree pause/resume", ["6"], () => this.tree_pause = !this.tree_pause);
+        this.key_triggered_button("tree start reset", ["7"], () => {
             this.tree_xz_t = 0;
             this.tree_y_t = 0;
             this.tree_pause = false;
         });
-        this.key_triggered_button("bird pause/resume", ["3"], () => this.bird_pause = !this.bird_pause);
-        this.key_triggered_button("bird reset", ["4"], () => {
+        this.key_triggered_button("bird pause/resume", ["8"], () => this.bird_pause = !this.bird_pause);
+        this.key_triggered_button("bird reset", ["9"], () => {
             this.bird_pause = false;
             this.bird_t = -5;
-        })
+        });
+        this.new_line();
+        for (let i=0; i<4; i++) {
+            this.key_triggered_button("camera " + i.toString(10), [i.toString(10)], () => {
+                if (this.current_camera == 0 && this.camera_lock) {
+                    this.camera_lock = false;
+                } else {
+                    this.camera_lock = true;
+                }
+                this.current_camera = i;
+                console.log(this.current_camera);
+            })
+        }
     };
 
     draw_bird(graphics_state, t){
@@ -183,11 +202,16 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.tri.draw(graphics_state, outer_wing, this.plastic.override({color: gold}));
     }
 
+    set_camera(graphics_state){
+       if (this.camera_lock){
+           graphics_state.camera_transform = Mat4.look_at(this.camera_pos[0], this.camera_pos[1], this.camera_pos[2]);
+       }
+    }
 
     display(graphics_state) {
+        //this.set_camera(graphics_state);
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-        //cylinder
 
         if (!this.bird_pause){
             this.bird_t += dt;
@@ -206,7 +230,7 @@ class Assignment_Three_Scene extends Scene_Component {
             (this.z_upper_bound - this.z_lower_bound) / 2, (this.y_upper_bound - this.y_lower_bound) / 2]));
         this.shapes.ground.draw(graphics_state, ground_transform, this.materials.ground);
 
-        //leaves
+        //test
         let model_transform = Mat4.identity();
         //model_transform = model_transform.times(Mat4.translation([0, 20, -5]));
         //model_transform = model_transform.times(Mat4.rotation(t, Vec.of(1, 0, 0)));
@@ -222,13 +246,6 @@ class Assignment_Three_Scene extends Scene_Component {
             [0, 0, 0, 1],
         );
         let grass_transform = Mat4.identity();
-        //let offset;
-        //for (let i = this.z_lower_bound; i < this.z_upper_bound; i += this.grass_gap) {
-        //    offset = Math.cos(i) ** 2;
-        //    grass_transform = grass_transform.times(Mat4.translation([offset, 0, i + offset]));
-        //    grass_transform = grass_transform.times(shear_mat);
-        //    //this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
-        //    grass_transform = Mat4.identity();
 
         //let offset;
         let field_gap = 20;
@@ -275,7 +292,7 @@ class Assignment_Three_Scene extends Scene_Component {
 
         let start_y = 8;
         this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
-            0.5, 1.2, 1, Mat4.translation([0,start_y,0]));
+            0.8, 1.5, 1, Mat4.translation([0,start_y,0]));
     }
     recursive_draw(graphics_state, start_x, start_y, xz_t, y_t, a, b, c, mt = Mat4.identity(), r_percentage = 1, pre_offset = 1){
         //let noise = this.random_array[Math.floor((start_x + 1) * start_y * a * b * c) % 10] ** 2;
@@ -301,11 +318,11 @@ class Assignment_Three_Scene extends Scene_Component {
                 let end_y = this.cylinder_h * c * offset;
                 let pass_out_mt = mt.times(random_rotation).times(Mat4.translation([end_x, end_y, 0]));
                 let new_c = c * 0.8;
-                let new_y_t = (1 + noise) * (y_t - this.cylinder_h * offset / this.y_speed);
+                let new_y_t = (0.9 + noise) * (y_t - this.cylinder_h * offset / this.y_speed);
                 if (r_percentage < 0.2 && new_c > 0){
                     new_c = -new_c;
                 }
-                this.recursive_draw(graphics_state, end_x, end_y, (1 + noise) * xz_t, new_y_t,
+                this.recursive_draw(graphics_state, end_x, end_y, (0.9 + noise) * xz_t, new_y_t,
                     1.00 * a, 1.5 / b, new_c, pass_out_mt, r_percentage * this.decay, offset);
             }
         }
@@ -327,9 +344,11 @@ class Assignment_Three_Scene extends Scene_Component {
                 let trigger = Math.cos(end_y * r_percentage * 8 );
                 if (trigger > 0.9 && r_percentage < 0.1) {
                     this.shapes.apple.draw(graphics_state, apple_transform.times(Mat4.scale([0.5, 0.5, 0.5])), this.materials.apple);
-                    this.shapes.cylinder.draw(graphics_state, apple_transform, this.materials.ground);
+                    this.shapes.cylinder.draw(graphics_state, apple_transform, this.materials.wood);
                 }
-                model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t])).times(Mat4.translation([0,-2,0])).times(Mat4.scale([1,1,0.3]));;
+                model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t]))
+                    .times(Mat4.translation([0,0.3,0]))
+                    .times(Mat4.scale([1,1,0.3]));
                 this.shapes.grass1.draw(graphics_state, model_transform, this.materials.grass1);
             }
         }

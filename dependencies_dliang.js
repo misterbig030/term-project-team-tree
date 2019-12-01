@@ -105,7 +105,6 @@ window.Hair = window.classes.Hair =
         for (let i=0; i<40; i++){
             let mt = Mat4.identity();
             let a = 0.8 + 0.1 * Math.cos(i * 0.16 * Math.PI);
-            console.log(a);
             let b = 4 + 1 * Math.sin(i * 0.03 * Math.PI);
             mt = mt.times(Mat4.rotation(i/40 * Math.PI, Vec.of(0,-1,0)));
             mt = mt.times(Mat4.translation([-1.1,0 ,0]));
@@ -217,7 +216,6 @@ window.Pratical_Cone = window.classes.Pratical_Cone =
         for (let i=0; i<height; i+=0.5*gap){
             //this.draw_base_circle(gap, Mat4.translation([0,i,0]));
             this.draw_base_circle(gap, base_r * (height-i) / height, i, Mat4.translation([0.1*Math.cos(i),i,0.1*Math.sin(i)]));
-            console.log(base_r*(height-i)/height, i);
         }
 
     }
