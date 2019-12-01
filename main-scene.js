@@ -21,14 +21,13 @@ class Assignment_Three_Scene extends Scene_Component {
         const cylinder_r = this.cylinder_r = 1;
         const cylinder_h = this.cylinder_h = 4;
         const xz_speed = this.xz_speed = 0.20;
-        const y_speed = this.y_speed = 1;
+        const y_speed = this.y_speed = 1.5;
         const decay = this.decay = 0.7;     //decay defines how fast the branchs gets smaller.
                                             //For blended cylinders, top radius = 0.8 bottom radius;
         let random_array = this.random_array = [];
         for (let i=0; i<10; i++){
             random_array.push(Math.random());
         }
-        console.log(random_array);
 
 
         const shapes = {
@@ -37,16 +36,16 @@ class Assignment_Three_Scene extends Scene_Component {
             row_grass: new Row_Grass(5, 10, this.x_lower_bound, this.x_upper_bound, this.z_lower_bound, this.z_upper_bound, this.grass_gap),
             apple: new Apple(10, 10),
             apple_2: new Subdivision_Sphere(4),
-            cylinder: new Cylinder(15, 15),
+            cylinder: new Cylinder(4, 10),
             main_trunk: new Pratical_Cylinder(cylinder_r, cylinder_h),
             fakecube: new Fake_Cube(),
-//        cone: new Pratical_Cone(cylinder_r, cylinder_h),
+            leaf: new Leaf(8, 16),
+            one_hair: new One_Hair(100,100,0.5,2),
+            hair: new Hair(40,50),
+            ball: new Subdivision_Sphere(4),
         }
         shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
-        //for (let i=0; i<shapes.cylinder.positions.length; i++){
-        //  shapes.cylinder.positions[i][0] += shapes.cylinder.positions[i][1]**2;
-        //}
 
         this.submit_shapes(context, shapes);
 
@@ -125,26 +124,6 @@ class Assignment_Three_Scene extends Scene_Component {
     display(graphics_state) {
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
-        //cylinder
-
-
-        let trunk_shear = Mat.of(
-            [1, 0.1, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, 0, 1],
-        );
-        let trunk_matrix = Mat4.identity();
-        trunk_matrix = trunk_matrix.times(Mat4.translation([0, 0, -20]));
-        if (t > 0 && t < 5) {
-            trunk_matrix = trunk_matrix.times(trunk_shear);
-            trunk_matrix = trunk_matrix.times(Mat4.scale([1, t, 1]));
-//      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
-        } else {
-            trunk_matrix = trunk_matrix.times(trunk_shear);
-            trunk_matrix = trunk_matrix.times(Mat4.scale([1, 5, 1]));
-//      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
-        }
 
 
         let ground_transform = Mat4.identity();
@@ -155,12 +134,20 @@ class Assignment_Three_Scene extends Scene_Component {
             (this.z_upper_bound - this.z_lower_bound) / 2, (this.y_upper_bound - this.y_lower_bound) / 2]));
         this.shapes.ground.draw(graphics_state, ground_transform, this.materials.ground);
 
-        //apple
+        //leaves
         let model_transform = Mat4.identity();
-        model_transform = model_transform.times(Mat4.translation([0, 3, -10]));
-        model_transform = model_transform.times(Mat4.rotation(t, Vec.of(1, 0, 0)));
-        model_transform = model_transform.times(Mat4.scale([4, 4, 4]));
-//    this.shapes.apple.draw(graphics_state, model_transform, this.materials.apple);
+        //model_transform = model_transform.times(Mat4.translation([0, 20, -5]));
+        //model_transform = model_transform.times(Mat4.rotation(t, Vec.of(1, 0, 0)));
+        //model_transform = model_transform.times(Mat4.translation([0,-0.4,0]));
+        //model_transform = model_transform.times(Mat4.scale([0.8,1,0.01]));
+        //this.shapes.leaf.draw(graphics_state, model_transform, this.materials.apple.override({color: Color.of(0,0.4,0,1)}));
+
+        //hair
+        let hair_transform = Mat4.identity();
+        hair_transform = hair_transform.times(Mat4.translation([0,17,-5]));
+        hair_transform = hair_transform.times(Mat4.scale([5,8,5]));
+        this.shapes.hair.draw(graphics_state, hair_transform, this.materials.ground);
+        this.shapes.ball.draw(graphics_state, Mat4.translation([0,20,-5]).times(Mat4.scale([5,5,5])), this.materials.ground.override({color: Color.of(1,1,1,1)}));
 
         //grass
         let shear_mat = Mat.of(
@@ -180,7 +167,6 @@ class Assignment_Three_Scene extends Scene_Component {
         }
 
 
-        //testing pratical system:
         if (!this.tree_pause) {
             this.tree_xz_t += dt;
             this.tree_y_t += dt;
@@ -213,11 +199,7 @@ class Assignment_Three_Scene extends Scene_Component {
 
         let start_y = 8;
         //this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
-        //    0.25, 2, 1, Mat4.translation([0,start_y,0]));
-        this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
-            0.5, 1.2, 1, Mat4.translation([0,start_y,0]));
-        //this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
-        //    1, 1, 1, Mat4.translation([0,start_y,0]));
+        //    0.5, 1.2, 1, Mat4.translation([0,start_y,0]));
     }
     recursive_draw(graphics_state, start_x, start_y, xz_t, y_t, a, b, c, mt = Mat4.identity(), r_percentage = 1, pre_offset = 1){
         //let noise = this.random_array[Math.floor((start_x + 1) * start_y * a * b * c) % 10] ** 2;
@@ -253,7 +235,7 @@ class Assignment_Three_Scene extends Scene_Component {
             }
         }
         if (r_percentage < 0.20){
-            for (let offset of [0.6, 0.98]) {
+            for (let offset of [0.4, 0.8]) {
                 let end_x = a * Math.pow(this.cylinder_h * offset, b);
                 let end_y = this.cylinder_h * c * offset;
                 let pass_out_mt = mt.times(random_rotation).times(Mat4.translation([end_x, end_y, 0]));
@@ -261,14 +243,18 @@ class Assignment_Three_Scene extends Scene_Component {
                 let apple_t = 0;
                 let new_y_t = (y_t - this.cylinder_h * offset / this.y_speed);
                 if (new_y_t > 0){
-                    apple_t = 0.1 * new_y_t;
+                    apple_t = 0.05 * new_y_t;
                 }
                 if (apple_t > 1){
                     apple_t = 1;
                 }
-                console.log(apple_t);
-                model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t])).times(Mat4.translation([0,-2,0]));;
-                this.shapes.grass.draw(graphics_state, model_transform, this.materials.grass.override({color: Color.of(1,0,0,1)}));
+                let apple_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t])).times(Mat4.translation([0,-1,0]));
+                let trigger = Math.cos(end_y * r_percentage * 8 );
+                if (trigger > 0.9 && r_percentage < 0.1) {
+                    this.shapes.apple.draw(graphics_state, apple_transform.times(Mat4.scale([0.5, 0.5, 0.5])), this.materials.apple);
+                    this.shapes.cylinder.draw(graphics_state, apple_transform, this.materials.ground);
+                }
+
             }
         }
     }

@@ -9,12 +9,21 @@ window.Apple = window.classes.Apple =
         Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, half_heart_points ] );
     } };
 
-//class Apple_Shader extends Phong_Shader {
+window.Leaf = window.classes.Leaf =
+    class Leaf extends Shape
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+        let points = Array( rows ).fill( Vec.of( 0,0,0 ) )
+            .map( (p,i,a) => Mat4.rotation(i/(a.length-1) * Math.PI , Vec.of(0,0,-1))
+                .times(Mat4.translation([0,0.1 + 0.3 * Math.sin(i/(a.length-1) * Math.PI / 2) ** 0.5, 0]))
+                .times(p.to4(1)).to3());
+        Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns,points ] );
+    } };
+
 window.Apple_Shader = window.classes.Apple_Shader =
     class Apple_Shader extends Phong_Shader{
     fragment_glsl_code()           // ********* FRAGMENT SHADER *********
     {
-        // TODO:  Modify the shader below (right now it's just the same fragment shader as Phong_Shader) for requirement #7.
         return `
         uniform sampler2D texture;
         void main()
@@ -64,11 +73,49 @@ window.Grass = window.classes.Grass =
         Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points ] );
     } };
 
+window.One_Hair = window.classes.One_Hair =
+    class One_Hair extends Shape
+    { constructor( rows, columns, a, b)
+    { super( "positions", "normals", "texture_coords" );
+        Cylinder.insert_transformed_copy_into(this, [rows, columns]);
+        for (let i=0; i<this.positions.length; i++){
+            this.positions[i][0] += a * Math.pow(this.positions[i][1], b);
+        }
+    } };
+
+window.Hair = window.classes.Hair =
+    class Hair extends Shape
+    { constructor( rows, columns)
+    { super( "positions", "normals", "texture_coords" );
+        for (let i=0; i<40; i++){
+            let mt = Mat4.identity();
+            let a = 0.8 + 0.1 * Math.cos(i * 0.16 * Math.PI);
+            console.log(a);
+            let b = 4 + 1 * Math.sin(i * 0.03 * Math.PI);
+            mt = mt.times(Mat4.rotation(i/40 * Math.PI, Vec.of(0,-1,0)));
+            mt = mt.times(Mat4.translation([-1.1,0 ,0]));
+            //mt = mt.times(Mat4.translation([0.4, 0.4,0]));
+            //mt = mt.times(Mat4.rotation(Math.cos(i*0.16*Math.PI) * 0.1 * Math.PI, Vec.of(0,0,-1)));
+            //mt = mt.times(Mat4.translation([-0.4, -0.4,0]));
+            One_Hair.insert_transformed_copy_into(this, [rows, columns, 0.8, 4], mt);
+        }
+
+    } };
+
+window.Bunch_Grass = window.classes.Bunch_Grass =
+    class Bunch_Grass extends Shape
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+        Grass.insert_transformed_copy_into(this, [rows, columns]);
+        Grass_1.insert_transformed_copy_into(this, [rows, columns]);
+        Grass_2.insert_transformed_copy_into(this, [rows, columns]);
+    } };
+
 window.Row_Grass = window.classes.Row_Grass =
     class Row_Grass extends Shape                                   // An axis set with arrows, made out of a lot of various primitives.
     { constructor(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap=1)
     { super( "positions", "normals", "texture_coords" );
-        this.draw_row_grass(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap)
+        this.draw_row_grass(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, 3 * gap)
     }
         draw_row_grass(rows, columns, x_lower_bound, x_upper_bound, z_lower_bound, z_upper_bound, gap)
         {
@@ -81,7 +128,7 @@ window.Row_Grass = window.classes.Row_Grass =
                     [0, 0, 1, 0],
                     [0, 0, 0, 1],
                 );
-                Grass.insert_transformed_copy_into( this, [rows, columns ],Mat4.translation([ i + Math.random(), 0, 0])
+                Bunch_Grass.insert_transformed_copy_into( this, [rows, columns ],Mat4.translation([ i + Math.random(), 0, 0])
                     .times(Mat4.rotation((Math.random()-0.5) * Math.PI, Vec.of(0,1,0)))
                     .times(shear_mat));
             }
