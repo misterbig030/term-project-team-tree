@@ -102,16 +102,16 @@ window.Hair = window.classes.Hair =
     class Hair extends Shape
     { constructor( rows, columns)
     { super( "positions", "normals", "texture_coords" );
-        for (let i=0; i<40; i++){
+        for (let i=0; i<50; i++){
             let mt = Mat4.identity();
             let a = 0.9 + 0.1 * Math.cos(i * 0.16 * Math.PI);
             let b = 4 + 1 * Math.sin(i * 0.03 * Math.PI);
-            mt = mt.times(Mat4.rotation(i/40 * Math.PI, Vec.of(0,-1,0)));
-            mt = mt.times(Mat4.translation([-1.1,0 ,0]));
+            mt = mt.times(Mat4.rotation(i/50 * Math.PI * 1.4 - 0.2 * Math.PI, Vec.of(0,-1,0)));
+            mt = mt.times(Mat4.translation([-1.3,Math.cos(a*b*11) *  0.1,0]));
             //mt = mt.times(Mat4.translation([0.4, 0.4,0]));
             //mt = mt.times(Mat4.rotation(Math.cos(i*0.16*Math.PI) * 0.1 * Math.PI, Vec.of(0,0,-1)));
             //mt = mt.times(Mat4.translation([-0.4, -0.4,0]));
-            One_Hair.insert_transformed_copy_into(this, [rows, columns, 0.8, 4], mt);
+            One_Hair.insert_transformed_copy_into(this, [rows, columns, 1.1, 5], mt);
         }
 
     } };
