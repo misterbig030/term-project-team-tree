@@ -37,7 +37,7 @@ class Assignment_Three_Scene extends Scene_Component {
             row_grass: new Row_Grass(5, 10, this.x_lower_bound, this.x_upper_bound, this.z_lower_bound, this.z_upper_bound, this.grass_gap),
             field: new Field(5,10),
             apple: new Apple(10, 10),
-            apple_2: new Subdivision_Sphere(4),
+            rain: new Subdivision_Sphere(4),
             cylinder: new Cylinder(4, 10),
             main_trunk: new Pratical_Cylinder(cylinder_r, cylinder_h),
             fakecube: new Fake_Cube(),
@@ -57,7 +57,6 @@ class Assignment_Three_Scene extends Scene_Component {
             body: new Cylinder(15,15),
             foot: new Cube(),
         }
-        shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
         shapes.ground.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         //shapes.poop.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
@@ -67,8 +66,10 @@ class Assignment_Three_Scene extends Scene_Component {
         // Make some Material objects available to you:
         this.clay    = context.get_instance( Phong_Shader ).material( Color.of( .9,.5,.9, 1 ), { ambient:0.8, diffusivity:0 } );
         this.plastic = this.clay.override({ specularity:0 });
+        this.rain_color = Color.of(0.8,1,0.8,0.1);
         this.materials =
             {
+                rain: context.get_instance(Phong_Shader).material(this.rain_color, {ambient:0.7, diffusivity:1}),
                 wood: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
                 main_trunk: context.get_instance(Phong_Shader_Cylinder).material(
                     Color.of(0, 0, 0, 1), {
@@ -156,8 +157,8 @@ class Assignment_Three_Scene extends Scene_Component {
         this.tree_pause = false;
         this.tree_xz_t = 0;
         this.tree_y_t = 0;
-        this.tree_xz_t = 1000;
-        this.tree_y_t = 1000;
+        this.tree_xz_t = 0;
+        this.tree_y_t = 0;
         this.bird_t = -5;
         this.bird_pause = true;
         this.current_camera = 0;
@@ -176,6 +177,9 @@ class Assignment_Three_Scene extends Scene_Component {
 
         this.celebrate = false;
         this.cel_t = 0;
+
+        this.rain_on = false;;
+        this.rain_t = -1;
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
@@ -191,6 +195,10 @@ class Assignment_Three_Scene extends Scene_Component {
         this.key_triggered_button("bird reset", ["9"], () => {
             this.bird_pause = false;
             this.bird_t = -5;
+        });
+        this.key_triggered_button("rain reset", [], () => {
+            this.rain_on = true;
+            this.rain_t = -1;
         });
         this.new_line();
         for (let i=0; i<4; i++) {
@@ -292,34 +300,41 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.foot.draw(graphics_state, right_foot_transform, this.materials.clothes);
     }
 
-    //draw_rain(graphics_state, t)
-    //{
+    draw_one_rain(graphics_state, t, y_range, speed, mt, duration, time_offset){
+        if (t<0){
+            return;
+        }
+        //if (t > Math.floor(duration / (y_range / speed)) * y_range / speed){
+        //    return;
+        //}
+        let y = y_range - (speed * t * 60) % (y_range * 60) / 60;
+        if (t > Math.floor(duration/(y_range/speed)) * y_range/speed){
+        //if (t > duration && y < 10){
+            console.log(t);
+            return;
+        }
+        let model_transform = mt.times(Mat4.translation([0, y, 0]));
+        model_transform = model_transform.times(Mat4.scale([0.1,0.2,0.1]));
+        this.shapes.rain.draw(graphics_state, model_transform, this.materials.rain);
+    }
 
-    //    let rain_transform = Mat4.identity();
-
-
-    //    // rain_transform = rain_transform.times(Mat4.translation([10*t, 20, 0]));
-    //    // let rain = rain_transform.times(Mat4.scale([0.65, 0.65, 0.65]));
-    //    // head = head.times(Mat4.translation([1,0,0]));
-    //    // this.shapes.ball.draw(graphics_state, head, this.plastic.override({color: yellow}));
-    //}
-
-    draw_rain(graphics_state, t)
+    draw_rain(graphics_state, t, duration)
     {
-        let apple_transform = Mat4.identity();
-        apple_transform = apple_transform.times(Mat4.translation([0, 20, 0]));
-        let app = apple_transform.times(Mat4.scale([1, 1, 1]));
-
-        this.shapes.apple.draw(graphics_state, app, this.materials.apple);
-        const rain_c = Color.of( 240/255,1,1,1 );
-
-        let rain_transform = Mat4.identity();
-
-
-        // rain_transform = rain_transform.times(Mat4.translation([10*t, 20, 0]));
-        // let rain = rain_transform.times(Mat4.scale([0.65, 0.65, 0.65]));
-        // head = head.times(Mat4.translation([1,0,0]));
-        // this.shapes.ball.draw(graphics_state, head, this.plastic.override({color: yellow}));
+        let x_range = 10;
+        let y_range = 22;
+        let z_range = 5;
+        let gap = 1;
+        let speed = 5;
+        for (let i=-x_range+0.5; i<x_range-0.5; i+=gap){
+            for (let j=-z_range+0.5; j<z_range-0.5; j+=gap){
+                let time_offset = 1 - Math.cos((i+1) * (j+1));
+                let transparency = (duration - t) / duration;
+                this.draw_one_rain(graphics_state, t - time_offset, y_range, 10, Mat4.translation([i,0,j]), duration, time_offset);
+            }
+        }
+        if (t>duration + 4 ){
+            this.rain_on = false;
+        }
     }
 
     draw_cloud(graphics_state, t){
@@ -354,6 +369,10 @@ class Assignment_Three_Scene extends Scene_Component {
         }
         apple_transform = apple_transform.times(Mat4.scale([0.4,0.4,0.4]));
         this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+    }
+
+    drop_poop(graphics_state, t){
+
     }
 
     draw_bird(graphics_state, t){
@@ -406,6 +425,14 @@ class Assignment_Three_Scene extends Scene_Component {
         //this.set_camera(graphics_state);
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
+
+        if (this.rain_on){
+            this.rain_t += dt;
+        }
+        let duration = 5;
+        if (this.rain_t < duration + 4 && this.rain_t > 0){
+            this.draw_rain(graphics_state, this.rain_t, duration);
+        }
 
         if (!this.bird_pause) {
             this.bird_t += dt;
@@ -472,8 +499,8 @@ class Assignment_Three_Scene extends Scene_Component {
         }
 
         //poop
-        let poop_mat = Mat4.identity().times(Mat4.translation([20, 5, 0]));
-        this.shapes.poop.draw(graphics_state, poop_mat, this.materials.poop);
+        //let poop_mat = Mat4.identity().times(Mat4.translation([20, 5, 0]));
+        //this.shapes.poop.draw(graphics_state, poop_mat, this.materials.poop);
 
 
         if (!this.tree_pause) {

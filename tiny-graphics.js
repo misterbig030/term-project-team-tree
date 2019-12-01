@@ -286,7 +286,7 @@ class Vertex_Buffer           // To use Vertex_Buffer, make a subclass of it tha
       }                                                               // If no indices were provided, assume the vertices are arranged
       else  gl.drawArrays( this.gl[type], 0, this.positions.length );          // as triples of positions in a field called "positions".
     }
-  draw( graphics_state, model_transform, material, offset = 8, type = "TRIANGLES", gl = this.gl)        // To appear onscreen, a shape of any variety
+  draw( graphics_state, model_transform, material, type = "TRIANGLES", gl = this.gl)        // To appear onscreen, a shape of any variety
     { if( !this.gl ) throw "This shape's arrays are not copied over to graphics card yet.";  // goes through this draw() function, which
       material.shader.activate();                                                            // executes the shader programs.  The shaders
       material.shader.update_GPU( graphics_state, model_transform, material);               // draw the right shape due to pre-selecting
