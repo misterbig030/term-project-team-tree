@@ -386,6 +386,8 @@ window.Phong_Shader_Cylinder = window.classes.Phong_Shader_Cylinder =
           if( USE_TEXTURE ) gl_FragColor = vec4( ( tex_color.xyz + shapeColor.xyz ) * ambient, shapeColor.w * tex_color.w );
           else gl_FragColor = vec4( shapeColor.xyz * ambient, shapeColor.w );
           gl_FragColor.xyz += phong_model_lights( N );                     // Compute the final color with contributions from lights.
+          
+          
         }`;
         }
         // Define how to synchronize our JavaScript's variables to the GPU's:

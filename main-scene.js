@@ -48,10 +48,13 @@ class Assignment_Three_Scene extends Scene_Component {
             'box'  : new Cube(),
             'tri'  : new Triangle(),
             grass1: new Grass1(5, 10),
+            //oblate_1: new Oblate_1(4)
+            poop: new Poop(4),
         }
         shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
         shapes.ground.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
+        //shapes.poop.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
 
         this.submit_shapes(context, shapes);
 
@@ -107,13 +110,20 @@ class Assignment_Three_Scene extends Scene_Component {
                 ground: context.get_instance(Phong_Shader).material(
                     Color.of(0, 0, 0, 1), {
                         ambient: 1,
-                        texture: context.get_instance("assets/ground.png")
+                        texture: context.get_instance("assets/ground.png"),
                     }
                 ),
                 grass1: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {ambient: 0.5, texture: context.get_instance("assets/leave3.jpg",true)}),
                 grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 bunch_grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
+                poop: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
+                // poop: context.get_instance(Poop_Shader).material(
+                //     Color.of(102 / 255, 51 / 255, 0, 1), {
+                //         ambient: 0.5,
+                //         texture: context.get_instance("assets/poop.jpg")
+                //     }
+                // ),
 
             };
 
@@ -258,7 +268,11 @@ class Assignment_Three_Scene extends Scene_Component {
             }
         }
 
-        
+        //poop
+        let poop_mat = Mat4.identity().times(Mat4.translation([20,5,0]));
+        this.shapes.poop.draw(graphics_state, poop_mat, this.materials.poop);
+
+
 
         if (!this.tree_pause) {
             this.tree_xz_t += dt;
