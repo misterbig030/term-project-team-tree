@@ -40,6 +40,9 @@ class Assignment_Three_Scene extends Scene_Component {
             cylinder: new Cylinder(15, 15),
             main_trunk: new Pratical_Cylinder(cylinder_r, cylinder_h),
             fakecube: new Fake_Cube(),
+            'ball' : new Subdivision_Sphere( 4 ),
+            'box'  : new Cube(),
+            'tri'  : new Triangle(),
 //        cone: new Pratical_Cone(cylinder_r, cylinder_h),
         }
         shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
@@ -51,6 +54,8 @@ class Assignment_Three_Scene extends Scene_Component {
         this.submit_shapes(context, shapes);
 
         // Make some Material objects available to you:
+        this.clay    = context.get_instance( Phong_Shader ).material( Color.of( .9,.5,.9, 1 ), { ambient:0.8, diffusivity:0 } );
+        this.plastic = this.clay.override({ specularity:0 });
         this.materials =
             {
                 main_trunk: context.get_instance(Phong_Shader_Cylinder).material(
@@ -108,25 +113,75 @@ class Assignment_Three_Scene extends Scene_Component {
         this.tree_y_t = 0;
         this.tree_xz_t = 1000;
         this.tree_y_t = 1000;
+        this.bird_t = -30;
+        this.bird_pause = true;
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
     {
         //this.key_triggered_button("View solar system", ["0"], () => this.attached = () => this.initial_camera_location);
         this.key_triggered_button("tree pause/resume", ["1"], () => this.tree_pause = !this.tree_pause);
-        this.key_triggered_button("tree start reset", ["2"], () => {
+        this.key_triggered_button("tree reset", ["2"], () => {
             this.tree_xz_t = 0;
             this.tree_y_t = 0;
             this.tree_pause = false;
         });
+        this.key_triggered_button("bird pause/resume", ["3"], () => this.bird_pause = !this.bird_pause);
+        this.key_triggered_button("bird reset", ["4"], () => {
+            this.bird_pause = false;
+            this.bird_t = -30;
+        })
     };
 
+    draw_bird(graphics_state, t){
+        const yellow = Color.of( 1,1,0,1 );
+        const black = Color.of(0,0,0,1);
+        const red = Color.of(139/255,0,0,1);
+        const gold = Color.of(1,215/255, 0,1);
+
+        let bird_transform = Mat4.identity();
+
+
+        bird_transform = bird_transform.times(Mat4.translation([10*t, 20, 0]));
+        let head = bird_transform.times(Mat4.scale([0.65, 0.65, 0.65]));
+        head = head.times(Mat4.translation([1,0,0]));
+        this.shapes.ball.draw(graphics_state, head, this.plastic.override({color: yellow}));
+
+        let body = bird_transform.times(Mat4.scale([2, 0.50, 1]));
+        body = body.times(Mat4.translation([-1,0,0]));
+        this.shapes.ball.draw(graphics_state, body, this.plastic.override({color: yellow}));
+
+        let eye = bird_transform.times(Mat4.translation([0.5, 0, 1]));
+            eye = eye.times(Mat4.scale([0.1, 0.1, 0.1]));
+            eye = eye.times(Mat4.translation([1,0,0]));
+        this.shapes.ball.draw(graphics_state, eye, this.plastic.override({color: black}));
+
+        let mouth = bird_transform.times(Mat4.translation([1, -0.44, 0]))
+            .times(Mat4.scale([0.7, 0.5, 0.5]));
+        this.shapes.tri.draw(graphics_state, mouth, this.plastic.override({color: red}));
+
+        var rotate_angle = Math.PI / 2 * (1 + Math.cos(2 * Math.PI * t));
+
+        let inner_wing = bird_transform.times(Mat4.translation([-1, -0.5, -1]))
+            .times(Mat4.rotation(rotate_angle, Vec.of(0,1,0) ) )
+            .times(Mat4.scale([1, 0.7, 2]));
+        this.shapes.tri.draw(graphics_state, inner_wing, this.plastic.override({color: gold}));
+
+        let outer_wing = bird_transform.times(Mat4.translation([-1, -0.5, 1]))
+                  .times(Mat4.rotation(rotate_angle, Vec.of(0,1,0) ) )
+            .times(Mat4.scale([1,0.7,2]));
+        this.shapes.tri.draw(graphics_state, outer_wing, this.plastic.override({color: gold}));
+    }
 
     display(graphics_state) {
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
         //cylinder
 
+        if (!this.bird_pause){
+            this.bird_t += dt;
+        }
+        this.draw_bird(graphics_state,this.bird_t);
 
         let trunk_shear = Mat.of(
             [1, 0.1, 0, 0],
@@ -175,7 +230,7 @@ class Assignment_Three_Scene extends Scene_Component {
             offset = Math.cos(i) ** 2;
             grass_transform = grass_transform.times(Mat4.translation([offset, 0, i + offset]));
             grass_transform = grass_transform.times(shear_mat);
-            this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
+            //this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
             grass_transform = Mat4.identity();
         }
 
@@ -189,33 +244,33 @@ class Assignment_Three_Scene extends Scene_Component {
         model_transform = Mat4.identity();
         model_transform = model_transform.times(Mat4.translation([0,3,-10]));
         model_transform = model_transform.times(Mat4.rotation(Math.PI/5, Vec.of(0,1,0)));
-        this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
-            .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
+        //this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
+            //.override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
         model_transform = model_transform.times(Mat4.translation([0,-0.5,0]));
         model_transform = model_transform.times(Mat4.rotation(Math.PI/2, Vec.of(0,1,0)));
-        this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
-            .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
+        //this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
+            //.override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
         model_transform = model_transform.times(Mat4.translation([0,-0.5,0]));
         model_transform = model_transform.times(Mat4.rotation(Math.PI/2, Vec.of(0,1,0)));
-        this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
-            .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
+        //this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
+            //.override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
         model_transform = model_transform.times(Mat4.translation([0,-0.5,0]));
         model_transform = model_transform.times(Mat4.rotation(Math.PI/2, Vec.of(0,1,0)));
-        this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
-            .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
+        //this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch
+            //.override({xz_t: this.tree_xz_t, y_t: this.tree_y_t, a:0.25, b:2, c:-1}));
 
         //main_trunk
-        this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0, 0, -10]), this.materials.main_trunk
-            .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t}));
-        this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0, this.cylinder_h, -10]), this.materials.main_trunk
-            .override({xz_t: this.tree_xz_t, y_t: this.tree_y_t - this.cylinder_h / this.y_speed}));
+        //this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0, 0, -10]), this.materials.main_trunk
+            //.override({xz_t: this.tree_xz_t, y_t: this.tree_y_t}));
+        //this.shapes.main_trunk.draw(graphics_state, Mat4.translation([0, this.cylinder_h, -10]), this.materials.main_trunk
+            //.override({xz_t: this.tree_xz_t, y_t: this.tree_y_t - this.cylinder_h / this.y_speed}));
 
 
         let start_y = 8;
         //this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
         //    0.25, 2, 1, Mat4.translation([0,start_y,0]));
-        this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
-            0.5, 1.2, 1, Mat4.translation([0,start_y,0]));
+        //this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
+            //0.5, 1.2, 1, Mat4.translation([0,start_y,0]));
         //this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
         //    1, 1, 1, Mat4.translation([0,start_y,0]));
     }
@@ -227,14 +282,14 @@ class Assignment_Three_Scene extends Scene_Component {
         let world_translation= Mat4.translation([0,0,-10]);
 
         let model_transform = world_translation.times(mt).times(random_rotation);
-        this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch.override({
-                xz_t: xz_t,
-                y_t: y_t,
-                a:a,
-                b:b,
-                c:c,
-                r_percentage:r_percentage,
-            }));
+        // this.shapes.main_trunk.draw(graphics_state, model_transform, this.materials.branch.override({
+        //         xz_t: xz_t,
+        //         y_t: y_t,
+        //         a:a,
+        //         b:b,
+        //         c:c,
+        //         r_percentage:r_percentage,
+        //     }));
         //.override({xz_t: xz_t, y_t: y_t, a:1.4, b:1/1.4, c:1}));
         //calculate end point:
         //  x += a * pow(y, b)
@@ -248,8 +303,8 @@ class Assignment_Three_Scene extends Scene_Component {
                 if (r_percentage < 0.2 && new_c > 0){
                     new_c = -new_c;
                 }
-                this.recursive_draw(graphics_state, end_x, end_y, (1 + noise) * xz_t, new_y_t,
-                    1.00 * a, 1.5 / b, new_c, pass_out_mt, r_percentage * this.decay, offset);
+                //this.recursive_draw(graphics_state, end_x, end_y, (1 + noise) * xz_t, new_y_t,
+                    //1.00 * a, 1.5 / b, new_c, pass_out_mt, r_percentage * this.decay, offset);
             }
         }
         if (r_percentage < 0.20){
@@ -268,7 +323,7 @@ class Assignment_Three_Scene extends Scene_Component {
                 }
                 console.log(apple_t);
                 model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t])).times(Mat4.translation([0,-2,0]));;
-                this.shapes.grass.draw(graphics_state, model_transform, this.materials.grass.override({color: Color.of(1,0,0,1)}));
+                //this.shapes.grass.draw(graphics_state, model_transform, this.materials.grass.override({color: Color.of(1,0,0,1)}));
             }
         }
     }
