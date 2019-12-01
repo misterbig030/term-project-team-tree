@@ -61,8 +61,12 @@ window.Grass = window.classes.Grass =
             .map( (p,i,a) =>
                 Mat4.translation([width * Math.sin(i/(a.length-1) * Math.PI), i/(a.length-1) * length,0])
                     .times(p.to4(1)).to3());
-        Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points ] );
+        Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points] );
     } };
+
+
+
+
 
 window.Row_Grass = window.classes.Row_Grass =
     class Row_Grass extends Shape                                   // An axis set with arrows, made out of a lot of various primitives.
@@ -81,7 +85,7 @@ window.Row_Grass = window.classes.Row_Grass =
                     [0, 0, 1, 0],
                     [0, 0, 0, 1],
                 );
-                Grass.insert_transformed_copy_into( this, [rows, columns ],Mat4.translation([ i + Math.random(), 0, 0])
+                Bunch_Grass.insert_transformed_copy_into( this, [rows, columns ],Mat4.translation([ i + Math.random(), 0, 0])
                     .times(Mat4.rotation((Math.random()-0.5) * Math.PI, Vec.of(0,1,0)))
                     .times(shear_mat));
             }

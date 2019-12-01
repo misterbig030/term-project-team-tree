@@ -34,7 +34,9 @@ class Assignment_Three_Scene extends Scene_Component {
         const shapes = {
             ground: new Cube(),
             grass: new Grass(5, 10),
+            bunch_grass: new Bunch_Grass(5,10),
             row_grass: new Row_Grass(5, 10, this.x_lower_bound, this.x_upper_bound, this.z_lower_bound, this.z_upper_bound, this.grass_gap),
+            field: new Field(5,10),
             apple: new Apple(10, 10),
             apple_2: new Subdivision_Sphere(4),
             cylinder: new Cylinder(15, 15),
@@ -44,9 +46,8 @@ class Assignment_Three_Scene extends Scene_Component {
         }
         shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
-        //for (let i=0; i<shapes.cylinder.positions.length; i++){
-        //  shapes.cylinder.positions[i][0] += shapes.cylinder.positions[i][1]**2;
-        //}
+        shapes.ground.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
+
 
         this.submit_shapes(context, shapes);
 
@@ -96,8 +97,15 @@ class Assignment_Three_Scene extends Scene_Component {
                         texture: context.get_instance("assets/apple-texture.jpg"),
                     }
                 ),
-                ground: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
+                //ground: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
+                ground: context.get_instance(Phong_Shader).material(
+                    Color.of(0, 0, 0, 1), {
+                        ambient: 1,
+                        texture: context.get_instance("assets/ground.png")
+                    }
+                ),
                 grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
+                bunch_grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
 
             }
@@ -134,17 +142,17 @@ class Assignment_Three_Scene extends Scene_Component {
             [0, 0, 1, 0],
             [0, 0, 0, 1],
         );
-        let trunk_matrix = Mat4.identity();
-        trunk_matrix = trunk_matrix.times(Mat4.translation([0, 0, -20]));
-        if (t > 0 && t < 5) {
-            trunk_matrix = trunk_matrix.times(trunk_shear);
-            trunk_matrix = trunk_matrix.times(Mat4.scale([1, t, 1]));
-//      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
-        } else {
-            trunk_matrix = trunk_matrix.times(trunk_shear);
-            trunk_matrix = trunk_matrix.times(Mat4.scale([1, 5, 1]));
-//      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
-        }
+//         let trunk_matrix = Mat4.identity();
+//         trunk_matrix = trunk_matrix.times(Mat4.translation([0, 0, -20]));
+//         if (t > 0 && t < 5) {
+//             trunk_matrix = trunk_matrix.times(trunk_shear);
+//             trunk_matrix = trunk_matrix.times(Mat4.scale([1, t, 1]));
+// //      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
+//         } else {
+//             trunk_matrix = trunk_matrix.times(trunk_shear);
+//             trunk_matrix = trunk_matrix.times(Mat4.scale([1, 5, 1]));
+// //      this.shapes.cylinder.draw(graphics_state, trunk_matrix, this.materials.trunk);
+//         }
 
 
         let ground_transform = Mat4.identity();
@@ -170,15 +178,18 @@ class Assignment_Three_Scene extends Scene_Component {
             [0, 0, 0, 1],
         );
         let grass_transform = Mat4.identity();
-        let offset;
-        for (let i = this.z_lower_bound; i < this.z_upper_bound; i += this.grass_gap) {
-            offset = Math.cos(i) ** 2;
-            grass_transform = grass_transform.times(Mat4.translation([offset, 0, i + offset]));
-            grass_transform = grass_transform.times(shear_mat);
-            this.shapes.row_grass.draw(graphics_state, grass_transform, this.materials.grass);
-            grass_transform = Mat4.identity();
+        //let offset;
+        let field_gap = 20;
+        let rand;
+        for (let i = this.x_lower_bound+10; i < this.x_upper_bound-15; i += field_gap) {
+            for (let j = this.z_lower_bound-5; j < this.z_upper_bound-20; j += field_gap) {
+                grass_transform = Mat4.translation([i+10, 0, j+14]).times(grass_transform.times(shear_mat));
+                this.shapes.field.draw(graphics_state, grass_transform, this.materials.bunch_grass);
+                grass_transform = Mat4.identity();
+            }
         }
 
+        
 
         //testing pratical system:
         if (!this.tree_pause) {
