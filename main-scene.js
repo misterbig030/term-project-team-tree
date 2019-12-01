@@ -278,8 +278,17 @@ class Assignment_Three_Scene extends Scene_Component {
     draw_newton(graphics_state, t, dt){
         //hair
         let hair_transform = Mat4.identity();
-        hair_transform = hair_transform.times(Mat4.rotation(Math.PI/4, Vec.of(0,1,0)));
-        hair_transform = hair_transform.times(Mat4.translation([0,7,0]));
+
+        if(this.celebrate){
+            this.cel_t += dt;
+            hair_transform = hair_transform.times(Mat4.translation([0,0,this.cel_t*3]));
+        }
+        
+        hair_transform = hair_transform.times(Mat4.translation([5,5.5,-10]));
+        hair_transform = hair_transform.times(Mat4.scale([0.3,0.3,0.3]));
+        hair_transform = hair_transform.times(Mat4.rotation(Math.PI/6, Vec.of(0,1,0)));
+        
+        
         this.shapes.hair.draw(graphics_state, hair_transform.times(Mat4.scale([5,8,5])), this.materials.hair);
 
         //head
@@ -297,7 +306,8 @@ class Assignment_Three_Scene extends Scene_Component {
         let hand_transform = body_transform.times(Mat4.translation([-1.2,3,0]));
 
         if(this.celebrate){
-            hand_transform = hand_transform.times(Mat4.rotation(Math.sin(4*this.cel_t) * Math.PI/4, Vec.of(0,0,1)));
+            //hand_transform = hand_transform.times(Mat4.rotation(Math.sin(4*this.cel_t) * Math.PI/4, Vec.of(0,0,1)));
+            hand_transform = hand_transform.times(Mat4.rotation(-Math.PI/2, Vec.of(0,0,1)));
         }
 
         hand_transform = hand_transform.times(Mat4.rotation(Math.PI*3/4, Vec.of(0,0,1)));
@@ -307,7 +317,8 @@ class Assignment_Three_Scene extends Scene_Component {
         hand_transform = body_transform.times(Mat4.translation([1.2,3,0]));
 
         if(this.celebrate){
-            hand_transform = hand_transform.times(Mat4.rotation(-Math.sin(4*this.cel_t) * Math.PI/4, Vec.of(0,0,1)));
+            //hand_transform = hand_transform.times(Mat4.rotation(-Math.sin(4*this.cel_t) * Math.PI/4, Vec.of(0,0,1)));
+            hand_transform = hand_transform.times(Mat4.rotation(Math.PI/2, Vec.of(0,0,1)));
         }
 
         hand_transform = hand_transform.times(Mat4.rotation(-Math.PI*3/4, Vec.of(0,0,1)));
@@ -320,7 +331,7 @@ class Assignment_Three_Scene extends Scene_Component {
         left_leg_transform = left_leg_transform.times(Mat4.rotation(Math.PI/2, Vec.of(1,0,0)));
 
         if(this.celebrate){
-            this.cel_t += dt;
+            
             if(this.cel_t < Math.PI/2)
                 left_leg_transform = left_leg_transform.times(Mat4.rotation(this.cel_t*2, Vec.of(0,0,1)));
             else
@@ -414,7 +425,7 @@ class Assignment_Three_Scene extends Scene_Component {
         }else{
             apple_transform = apple_transform.times(Mat4.translation([5, 0, -14]));
         }
-        apple_transform = apple_transform.times(Mat4.scale([0.4,0.4,0.4]));
+        apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
         this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
     }
 
@@ -523,11 +534,13 @@ class Assignment_Three_Scene extends Scene_Component {
             }
         }
 
+        this.draw_newton(graphics_state, t, dt);
+
         if (!this.apple_pause) {
             this.apple_t += dt;
         }
         if (this.apple_t > 0 && this.apple_t < 30) {
-            this.drop_apple(graphics_state, 6, 3 * this.apple_t);
+            this.drop_apple(graphics_state, 8, 3 * this.apple_t);
         }
 
         if (this.bird_t < 20 && this.bird_t > -10) {
