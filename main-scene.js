@@ -154,7 +154,7 @@ class Assignment_Three_Scene extends Scene_Component {
             };
 
         this.lights = [new Light(Vec.of(0, 10, 5, 1), Color.of(0, 1, 1, 1), 1000)];
-        this.tree_pause = false;
+        this.tree_pause = true;
         this.tree_xz_t = 0;
         this.tree_y_t = 0;
         this.tree_xz_t = 0;
@@ -185,18 +185,18 @@ class Assignment_Three_Scene extends Scene_Component {
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
     {
         //this.key_triggered_button("View solar system", ["0"], () => this.attached = () => this.initial_camera_location);
-        this.key_triggered_button("tree pause/resume", ["6"], () => this.tree_pause = !this.tree_pause);
-        this.key_triggered_button("tree start reset", ["7"], () => {
+        this.key_triggered_button("tree pause/resume", ["9"], () => this.tree_pause = !this.tree_pause);
+        this.key_triggered_button("tree start reset", ["9"], () => {
             this.tree_xz_t = 0;
             this.tree_y_t = 0;
             this.tree_pause = false;
         });
-        this.key_triggered_button("bird pause/resume", ["8"], () => this.bird_pause = !this.bird_pause);
+        this.key_triggered_button("bird pause/resume", ["9"], () => this.bird_pause = !this.bird_pause);
         this.key_triggered_button("bird reset", ["9"], () => {
             this.bird_pause = false;
             this.bird_t = -5;
         });
-        this.key_triggered_button("rain reset", [], () => {
+        this.key_triggered_button("rain reset", ['9'], () => {
             this.rain_on = true;
             this.rain_t = -1;
         });
@@ -212,17 +212,17 @@ class Assignment_Three_Scene extends Scene_Component {
                 console.log(this.current_camera);
             })
         }
-        this.key_triggered_button("cloud pause/resume", ["3"], () => this.cloud_pause = !this.cloud_pause);
-        this.key_triggered_button("cloud reset", ["4"], () => {
+        this.key_triggered_button("cloud pause/resume", ["9"], () => this.cloud_pause = !this.cloud_pause);
+        this.key_triggered_button("cloud reset", ["9"], () => {
             this.cloud_pause = false;
             this.cloud_t = -5;
         });
-        this.key_triggered_button("apple pause/resume", ["3"], () => this.apple_pause = !this.apple_pause);
-        this.key_triggered_button("apple reset", ["4"], () => {
+        this.key_triggered_button("apple pause/resume", ["9"], () => this.apple_pause = !this.apple_pause);
+        this.key_triggered_button("apple reset", ["9"], () => {
                 this.cloud_pause = false;
                 this.cloud_t = -5;
         })
-        this.key_triggered_button("celebrate", ["1"], () => {
+        this.key_triggered_button("celebrate", ["9"], () => {
             this.celebrate = !this.celebrate;
             this.cel_t = 0;
         });
@@ -479,7 +479,7 @@ class Assignment_Three_Scene extends Scene_Component {
         //this.shapes.leaf.draw(graphics_state, model_transform, this.materials.apple.override({color: Color.of(0,0.4,0,1)}));
 
         //grass
-        let shear_mat = Mat.of(
+        let shear_mat = this.shear_mat =  Mat.of(
             [1, 0.1 * Math.cos(Math.PI * t) + 0.2, 0, 0],
             [0, 1, 0, 0],
             [0, 0, 1, 0],
@@ -604,6 +604,12 @@ class Assignment_Three_Scene extends Scene_Component {
                 let end_x = a * Math.pow(this.cylinder_h * offset, b);
                 let end_y = this.cylinder_h * c * offset;
                 let pass_out_mt = mt.times(random_rotation).times(Mat4.translation([end_x, end_y, 0]));
+                let shear_mat = this.shear_mat =  Mat.of(
+                    [1, 0.1 * Math.cos(Math.PI * y_t / 6) + 0.0 * (Math.cos(Math.PI * offset * end_y / 200)) + 0.2, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1],
+                );
                 model_transform = world_translation.times(pass_out_mt);
                 let leaf_t = 0;
                 let new_y_t = (y_t - this.cylinder_h * offset / this.y_speed);
@@ -618,7 +624,8 @@ class Assignment_Three_Scene extends Scene_Component {
                     .times(Mat4.scale([1,1,0.3]))
                     .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(1,1,0)))
                     .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(-1,0,0)))
-                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(-1,1,0)));
+                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(-1,1,0)))
+                    .times(this.shear_mat);
                 this.shapes.grass1.draw(graphics_state, model_transform, this.materials.grass1);
             }
         }
