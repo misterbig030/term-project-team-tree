@@ -47,6 +47,7 @@ class Assignment_Three_Scene extends Scene_Component {
             ball: new Subdivision_Sphere(4),
             'box'  : new Cube(),
             'tri'  : new Triangle(),
+            grass1: new Grass1(5, 10),
         }
         shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
@@ -109,6 +110,7 @@ class Assignment_Three_Scene extends Scene_Component {
                         texture: context.get_instance("assets/ground.png")
                     }
                 ),
+                grass1: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {ambient: 0.5, texture: context.get_instance("assets/leave3.jpg",true)}),
                 grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 bunch_grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
@@ -129,7 +131,7 @@ class Assignment_Three_Scene extends Scene_Component {
     {
         //this.key_triggered_button("View solar system", ["0"], () => this.attached = () => this.initial_camera_location);
         this.key_triggered_button("tree pause/resume", ["1"], () => this.tree_pause = !this.tree_pause);
-        this.key_triggered_button("tree reset", ["2"], () => {
+        this.key_triggered_button("tree start reset", ["2"], () => {
             this.tree_xz_t = 0;
             this.tree_y_t = 0;
             this.tree_pause = false;
@@ -160,8 +162,8 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.ball.draw(graphics_state, body, this.plastic.override({color: yellow}));
 
         let eye = bird_transform.times(Mat4.translation([0.5, 0, 1]));
-            eye = eye.times(Mat4.scale([0.1, 0.1, 0.1]));
-            eye = eye.times(Mat4.translation([1,0,0]));
+        eye = eye.times(Mat4.scale([0.1, 0.1, 0.1]));
+        eye = eye.times(Mat4.translation([1,0,0]));
         this.shapes.ball.draw(graphics_state, eye, this.plastic.override({color: black}));
 
         let mouth = bird_transform.times(Mat4.translation([1, -0.44, 0]))
@@ -176,10 +178,11 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.tri.draw(graphics_state, inner_wing, this.plastic.override({color: gold}));
 
         let outer_wing = bird_transform.times(Mat4.translation([-1, -0.5, 1]))
-                  .times(Mat4.rotation(rotate_angle, Vec.of(0,1,0) ) )
+            .times(Mat4.rotation(rotate_angle, Vec.of(0,1,0) ) )
             .times(Mat4.scale([1,0.7,2]));
         this.shapes.tri.draw(graphics_state, outer_wing, this.plastic.override({color: gold}));
     }
+
 
     display(graphics_state) {
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
@@ -326,6 +329,8 @@ class Assignment_Three_Scene extends Scene_Component {
                     this.shapes.apple.draw(graphics_state, apple_transform.times(Mat4.scale([0.5, 0.5, 0.5])), this.materials.apple);
                     this.shapes.cylinder.draw(graphics_state, apple_transform, this.materials.ground);
                 }
+                model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t])).times(Mat4.translation([0,-2,0])).times(Mat4.scale([1,1,0.3]));;
+                this.shapes.grass1.draw(graphics_state, model_transform, this.materials.grass1);
             }
         }
     }

@@ -70,8 +70,23 @@ window.Grass = window.classes.Grass =
             .map( (p,i,a) =>
                 Mat4.translation([width * Math.sin(i/(a.length-1) * Math.PI), i/(a.length-1) * length,0])
                     .times(p.to4(1)).to3());
-        Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points] );
-    } };
+        Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points ] );
+    }
+    };
+
+window.Grass1 = window.classes.Grass =
+    class Grass extends Shape
+    { constructor( rows, columns )
+    { super( "positions", "normals", "texture_coords" );
+        let length = 1.5;
+        let width = 0.3;
+        let points = Array( rows ).fill(Vec.of(0,0,0))
+            .map( (p,i,a) =>
+                Mat4.translation([width * Math.sin(i/(a.length-1) * Math.PI), i/(a.length-1) * length,0])
+                    .times(p.to4(1)).to3());
+        Surface_Of_Revolution_Y.insert_transformed_copy_into( this, [ rows, columns, points ] );
+    }
+    };
 
 window.One_Hair = window.classes.One_Hair =
     class One_Hair extends Shape
