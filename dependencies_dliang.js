@@ -104,7 +104,7 @@ window.Hair = window.classes.Hair =
     { super( "positions", "normals", "texture_coords" );
         for (let i=0; i<40; i++){
             let mt = Mat4.identity();
-            let a = 0.8 + 0.1 * Math.cos(i * 0.16 * Math.PI);
+            let a = 0.9 + 0.1 * Math.cos(i * 0.16 * Math.PI);
             let b = 4 + 1 * Math.sin(i * 0.03 * Math.PI);
             mt = mt.times(Mat4.rotation(i/40 * Math.PI, Vec.of(0,-1,0)));
             mt = mt.times(Mat4.translation([-1.1,0 ,0]));
