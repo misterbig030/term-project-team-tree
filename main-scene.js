@@ -43,7 +43,6 @@ class Assignment_Three_Scene extends Scene_Component {
             fakecube: new Fake_Cube(),
             leaf: new Leaf(8, 16),
             one_hair: new One_Hair(100,100,0.5,2),
-            hair: new Hair(40,50),
             ball: new Subdivision_Sphere(4),
             'box'  : new Cube(),
             'tri'  : new Triangle(),
@@ -51,6 +50,12 @@ class Assignment_Three_Scene extends Scene_Component {
             //oblate_1: new Oblate_1(4)
             poop: new Poop(4),
             cloud : new Subdivision_Sphere( 4 ),
+
+            cone: new Cone(4),
+            head: new Subdivision_Sphere(4),
+            hair: new Hair(40,50),
+            body: new Cylinder(15,15),
+            foot: new Cube(),
         }
         shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
@@ -126,8 +131,25 @@ class Assignment_Three_Scene extends Scene_Component {
                 //     }
                 // ),
                 cloud: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {ambient: 0.8, texture: context.get_instance("assets/cloud.jpeg",true)}),
-
-
+                head: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1),{
+                        ambient: 1,
+                        texture: context.get_instance("assets/nt3.png"),
+                    }),
+                hair: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1), {
+                        ambient: 1,
+                        texture: context.get_instance("assets/nt4.jpg"),
+                    }),
+                white_hair: context.get_instance(Phong_Shader).material(
+                    Color.of(1, 1, 1, 1), {
+                        ambient: 0.2,
+                    }),
+                clothes: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1), {
+                        ambient: 1,
+                        texture: context.get_instance("assets/clothes2.jpg"),
+                    }),
             };
 
         this.lights = [new Light(Vec.of(0, 10, 5, 1), Color.of(0, 1, 1, 1), 1000)];
@@ -151,6 +173,9 @@ class Assignment_Three_Scene extends Scene_Component {
 
         this.apple_t = -5;
         this.apple_pause = true;
+
+        this.celebrate = false;
+        this.cel_t = 0;
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
@@ -184,12 +209,88 @@ class Assignment_Three_Scene extends Scene_Component {
             this.cloud_pause = false;
             this.cloud_t = -5;
         });
-            this.key_triggered_button("apple pause/resume", ["3"], () => this.apple_pause = !this.apple_pause);
-            this.key_triggered_button("apple reset", ["4"], () => {
+        this.key_triggered_button("apple pause/resume", ["3"], () => this.apple_pause = !this.apple_pause);
+        this.key_triggered_button("apple reset", ["4"], () => {
                 this.cloud_pause = false;
                 this.cloud_t = -5;
         })
+        this.key_triggered_button("celebrate", ["1"], () => {
+            this.celebrate = !this.celebrate;
+            this.cel_t = 0;
+        });
     };
+
+    draw_newton(graphics_state, t, dt){
+        //hair
+        let hair_transform = Mat4.identity();
+        hair_transform = hair_transform.times(Mat4.rotation(Math.PI/4, Vec.of(0,1,0)));
+        hair_transform = hair_transform.times(Mat4.translation([0,7,0]));
+        this.shapes.hair.draw(graphics_state, hair_transform.times(Mat4.scale([5,8,5])), this.materials.hair);
+
+        //head
+        let head_transform = hair_transform.times(Mat4.translation([0,3,0])).times(Mat4.scale([5,5,5]));
+        this.shapes.head.draw(graphics_state, head_transform, this.materials.hair);
+
+        //face
+        this.shapes.cone.draw(graphics_state, head_transform.times(Mat4.translation([0,0,0.01])), this.materials.head);
+
+        //body
+        let body_transform = head_transform.times(Mat4.translation([0,-4,0]));
+        this.shapes.body.draw(graphics_state, body_transform.times(Mat4.scale([25,3,10])), this.materials.clothes);
+
+        //hand
+        let hand_transform = body_transform.times(Mat4.translation([-1.2,3,0]));
+
+        if(this.celebrate){
+            hand_transform = hand_transform.times(Mat4.rotation(Math.sin(4*this.cel_t) * Math.PI/4, Vec.of(0,0,1)));
+        }
+
+        hand_transform = hand_transform.times(Mat4.rotation(Math.PI*3/4, Vec.of(0,0,1)));
+        hand_transform = hand_transform.times(Mat4.scale([5,2,5]));
+        this.shapes.body.draw(graphics_state, hand_transform, this.materials.hair);
+
+        hand_transform = body_transform.times(Mat4.translation([1.2,3,0]));
+
+        if(this.celebrate){
+            hand_transform = hand_transform.times(Mat4.rotation(-Math.sin(4*this.cel_t) * Math.PI/4, Vec.of(0,0,1)));
+        }
+
+        hand_transform = hand_transform.times(Mat4.rotation(-Math.PI*3/4, Vec.of(0,0,1)));
+        hand_transform = hand_transform.times(Mat4.scale([5,2,5]));
+        this.shapes.body.draw(graphics_state, hand_transform, this.materials.hair);
+
+
+        //leg
+        let left_leg_transform = body_transform.times(Mat4.translation([-0.7,0,0]));
+        left_leg_transform = left_leg_transform.times(Mat4.rotation(Math.PI/2, Vec.of(1,0,0)));
+
+        if(this.celebrate){
+            this.cel_t += dt;
+            if(this.cel_t < Math.PI/2)
+                left_leg_transform = left_leg_transform.times(Mat4.rotation(this.cel_t*2, Vec.of(0,0,1)));
+            else
+                left_leg_transform = left_leg_transform.times(Mat4.rotation(Math.PI, Vec.of(0,0,1)));
+        }
+
+        left_leg_transform = left_leg_transform.times(Mat4.scale([7,2.5,7]));
+        this.shapes.body.draw(graphics_state, left_leg_transform, this.materials.hair);
+
+        let right_leg_transform = body_transform.times(Mat4.translation([0.7,0,0]));
+        right_leg_transform = right_leg_transform.times(Mat4.rotation(Math.PI/2, Vec.of(1,0,0)));
+        right_leg_transform = right_leg_transform.times(Mat4.scale([7,2.5,7]));
+        this.shapes.body.draw(graphics_state, right_leg_transform, this.materials.hair);
+
+        //foot
+        let left_foot_transform = left_leg_transform;
+        left_foot_transform = left_foot_transform.times(Mat4.scale([1/28, 1/10, 1.5/28]));
+        left_foot_transform = left_foot_transform.times(Mat4.translation([0,11,-0.2]));
+        this.shapes.foot.draw(graphics_state, left_foot_transform, this.materials.clothes);
+
+        let right_foot_transform = right_leg_transform;
+        right_foot_transform = right_foot_transform.times(Mat4.scale([1/28, 1/10, 1.5/28]));
+        right_foot_transform = right_foot_transform.times(Mat4.translation([0,11,-0.2]));
+        this.shapes.foot.draw(graphics_state, right_foot_transform, this.materials.clothes);
+    }
 
     //draw_rain(graphics_state, t)
     //{
@@ -408,6 +509,9 @@ class Assignment_Three_Scene extends Scene_Component {
         let start_y = 8;
         this.recursive_draw(graphics_state, 0, start_y, this.tree_xz_t, this.tree_y_t - start_y / this.y_speed,
             0.8, 1.5, 1, Mat4.translation([0, start_y, 0]));
+
+
+        this.draw_newton(graphics_state, t, dt);
     }
     recursive_draw(graphics_state, start_x, start_y, xz_t, y_t, a, b, c, mt = Mat4.identity(), r_percentage = 1, pre_offset = 1){
         //let noise = this.random_array[Math.floor((start_x + 1) * start_y * a * b * c) % 10] ** 2;
