@@ -190,7 +190,7 @@ class Assignment_Three_Scene extends Scene_Component {
         body = body.times(Mat4.translation([-1,0,0]));
         this.shapes.ball.draw(graphics_state, body, this.plastic.override({color: yellow}));
 
-        let eye = bird_transform.times(Mat4.translation([0.5, 0, 1]));
+        let eye = bird_transform.times(Mat4.translation([0.5, 0, 0.66]));
         eye = eye.times(Mat4.scale([0.1, 0.1, 0.1]));
         eye = eye.times(Mat4.translation([1,0,0]));
         this.shapes.ball.draw(graphics_state, eye, this.plastic.override({color: black}));
