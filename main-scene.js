@@ -131,6 +131,11 @@ class Assignment_Three_Scene extends Scene_Component {
                 //     }
                 // ),
                 cloud: context.get_instance(Phong_Shader).material(Color.of(0, 0, 0, 1), {ambient: 0.8, texture: context.get_instance("assets/cloud.jpeg",true)}),
+                head: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1),{
+                        ambient: 1,
+                        texture: context.get_instance("assets/nt3.png"),
+                    }),
                 hair: context.get_instance(Phong_Shader).material(
                     Color.of(0,0,0,1), {
                         ambient: 1,
