@@ -179,7 +179,14 @@ class Assignment_Three_Scene extends Scene_Component {
         this.cel_t = 0;
 
         this.rain_on = false;;
+        this.rained = false;
         this.rain_t = -1;
+
+        this.animation_t = 0;
+        this.animation_pause = true;
+
+        this.tmp_cloud_t = 0;
+
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
@@ -192,6 +199,7 @@ class Assignment_Three_Scene extends Scene_Component {
             this.tree_pause = false;
         });
         this.key_triggered_button("bird pause/resume", ["9"], () => this.bird_pause = !this.bird_pause);
+        this.new_line();
         this.key_triggered_button("bird reset", ["9"], () => {
             this.bird_pause = false;
             this.bird_t = -5;
@@ -212,6 +220,7 @@ class Assignment_Three_Scene extends Scene_Component {
                 console.log(this.current_camera);
             })
         }
+        this.new_line();
         this.key_triggered_button("cloud pause/resume", ["9"], () => this.cloud_pause = !this.cloud_pause);
         this.key_triggered_button("cloud reset", ["9"], () => {
             this.cloud_pause = false;
@@ -226,6 +235,44 @@ class Assignment_Three_Scene extends Scene_Component {
             this.celebrate = !this.celebrate;
             this.cel_t = 0;
         });
+        this.new_line();
+        this.key_triggered_button("animation reset", ["="], () => {
+            this.animation_t = 0;
+            this.animation_pause = false;
+            this.tree_pause = true;
+            this.tree_xz_t = 0;
+            this.tree_y_t = 0;
+            this.tree_xz_t = 0;
+            this.tree_y_t = 0;
+            this.bird_t = -5;
+            this.bird_pause = true;
+            this.current_camera = 0;
+            this.camera_lock = false;
+            this.camera_pos = [];
+            this.camera_pos.push([Vec.of(0,20,40),Vec.of(0,8,-10), Vec.of(0,1,0)]);
+            this.camera_pos.push([Vec.of(20,20,-10),Vec.of(0,8,-10), Vec.of(0,1,0)]);
+            this.camera_pos.push([Vec.of(0,20,-40),Vec.of(0,8,-10), Vec.of(0,1,0)]);
+            this.camera_pos.push([Vec.of(20,20,-10),Vec.of(0,8,-10), Vec.of(0,1,0)]);
+
+            this.cloud_t = -5;
+            this.cloud_pause = true;
+
+            this.apple_t = -5;
+            this.apple_pause = true;
+
+            this.celebrate = false;
+            this.cel_t = 0;
+
+            this.rain_on = false;;
+            this.rained = false;
+            this.rain_t = -1;
+
+            this.animation_t = 0;
+            this.animation_pause = true;
+
+            this.tmp_cloud_t = 0;
+        });
+        this.key_triggered_button("animation pause/resume", ["p"], () => this.animation_pause = !this.animation_pause);
     };
 
     draw_newton(graphics_state, t, dt){
@@ -318,8 +365,7 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.rain.draw(graphics_state, model_transform, this.materials.rain);
     }
 
-    draw_rain(graphics_state, t, duration)
-    {
+    draw_rain(graphics_state, t, duration){
         let x_range = 10;
         let y_range = 22;
         let z_range = 5;
@@ -334,7 +380,9 @@ class Assignment_Three_Scene extends Scene_Component {
         }
         if (t>duration + 4 ){
             this.rain_on = false;
+            this.rained = true;
         }
+
     }
 
     draw_cloud(graphics_state, t){
@@ -353,8 +401,7 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.cloud.draw(graphics_state, cloud3, this.materials.cloud.override({ambient:0.73}));
     }
 
-    drop_apple(graphics_state, h,t)
-    {
+    drop_apple(graphics_state, h,t){
         let apple_transform = Mat4.identity();
         if (17-t > h){
             apple_transform = apple_transform.times(Mat4.translation([5, 17-t, -10]));
@@ -371,8 +418,11 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
     }
 
-    drop_poop(graphics_state, t){
+    drop_poop(graphics_state, t) {
 
+        //if (poop lands){
+        // this.cloud_pause = false;
+        //}
     }
 
     draw_bird(graphics_state, t){
@@ -384,7 +434,7 @@ class Assignment_Three_Scene extends Scene_Component {
         let bird_transform = Mat4.identity();
 
 
-        bird_transform = bird_transform.times(Mat4.translation([10*t, 20, 0]));
+        bird_transform = bird_transform.times(Mat4.translation([10*t, 20, -10]));
         let head = bird_transform.times(Mat4.scale([0.65, 0.65, 0.65]));
         head = head.times(Mat4.translation([1,0,0]));
         this.shapes.ball.draw(graphics_state, head, this.plastic.override({color: yellow}));
@@ -421,10 +471,19 @@ class Assignment_Three_Scene extends Scene_Component {
        }
     }
 
+    animation_controll(graphic_state){
+        this.bird_pause = false;
+
+    }
+
     display(graphics_state) {
         //this.set_camera(graphics_state);
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
+
+        if (!this.animation_pause){
+            this.animation_t += dt;
+        }
 
         if (this.rain_on){
             this.rain_t += dt;
@@ -442,12 +501,26 @@ class Assignment_Three_Scene extends Scene_Component {
         }
 
         if (!this.cloud_pause) {
-            this.cloud_t += dt * 0.3;
+            this.cloud_t += dt ;
         }
         if (this.cloud_t < 0 && this.bird_t > -10) {
             this.draw_cloud(graphics_state, this.cloud_t);
         } else {
-            this.draw_cloud(graphics_state, 0);
+            if (this.tmp_cloud_t < 5)
+                this.draw_cloud(graphics_state, 0);
+            else
+                this.draw_cloud(graphics_state, this.tmp_cloud_t - 5);
+            if (!this.rained){
+                this.tmp_cloud_t += dt;
+                this.rain_on = true;
+                duration = 5;
+                if (this.tmp_cloud_t > duration + 3 && this.tree_pause){
+                    this.tree_pause = false;
+                }
+                if (this.rain_t < duration + 4 && this.rain_t > 0) {
+                    this.draw_rain(graphics_state, this.rain_t, duration);
+                }
+            }
         }
 
         if (!this.apple_pause) {
@@ -460,6 +533,7 @@ class Assignment_Three_Scene extends Scene_Component {
         if (this.bird_t < 20 && this.bird_t > -10) {
             this.draw_bird(graphics_state, this.bird_t);
         }
+
 
 
         let ground_transform = Mat4.identity();
@@ -477,6 +551,8 @@ class Assignment_Three_Scene extends Scene_Component {
         //model_transform = model_transform.times(Mat4.translation([0,-0.4,0]));
         //model_transform = model_transform.times(Mat4.scale([0.8,1,0.01]));
         //this.shapes.leaf.draw(graphics_state, model_transform, this.materials.apple.override({color: Color.of(0,0.4,0,1)}));
+
+        this.draw_newton(graphics_state, t, dt);
 
         //grass
         let shear_mat = this.shear_mat =  Mat.of(
@@ -506,6 +582,9 @@ class Assignment_Three_Scene extends Scene_Component {
         if (!this.tree_pause) {
             this.tree_xz_t += dt;
             this.tree_y_t += dt;
+        }
+        if (this.tree_xz_t <= 0 && this.tree_y_t <= 0){
+            return;
         }
         //root
         model_transform = Mat4.identity();
@@ -538,7 +617,6 @@ class Assignment_Three_Scene extends Scene_Component {
             0.8, 1.5, 1, Mat4.translation([0, start_y, 0]));
 
 
-        //this.draw_newton(graphics_state, t, dt);
     }
     recursive_draw(graphics_state, start_x, start_y, xz_t, y_t, a, b, c, mt = Mat4.identity(), r_percentage = 1, pre_offset = 1){
         //let noise = this.random_array[Math.floor((start_x + 1) * start_y * a * b * c) % 10] ** 2;
