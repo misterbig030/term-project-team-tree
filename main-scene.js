@@ -42,11 +42,14 @@ class Assignment_Three_Scene extends Scene_Component {
             cylinder: new Cylinder(15, 15),
             main_trunk: new Pratical_Cylinder(cylinder_r, cylinder_h),
             fakecube: new Fake_Cube(),
+            //oblate_1: new Oblate_1(4)
+            poop: new Poop(4),
 //        cone: new Pratical_Cone(cylinder_r, cylinder_h),
         }
         shapes.apple_2.texture_coords = shapes.apple_2.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
         shapes.ground.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
+        //shapes.poop.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
 
 
         this.submit_shapes(context, shapes);
@@ -101,12 +104,19 @@ class Assignment_Three_Scene extends Scene_Component {
                 ground: context.get_instance(Phong_Shader).material(
                     Color.of(0, 0, 0, 1), {
                         ambient: 1,
-                        texture: context.get_instance("assets/ground.png")
+                        texture: context.get_instance("assets/ground.png"),
                     }
                 ),
                 grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 bunch_grass: context.get_instance(Phong_Shader).material(Color.of(0, 1, 0, 1), {ambient: 0.5}),
                 trunk: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
+                poop: context.get_instance(Phong_Shader).material(Color.of(102 / 255, 51 / 255, 0, 1), {ambient: .5}),
+                // poop: context.get_instance(Poop_Shader).material(
+                //     Color.of(102 / 255, 51 / 255, 0, 1), {
+                //         ambient: 0.5,
+                //         texture: context.get_instance("assets/poop.jpg")
+                //     }
+                // ),
 
             }
 
@@ -189,7 +199,11 @@ class Assignment_Three_Scene extends Scene_Component {
             }
         }
 
-        
+        //poop
+        let poop_mat = Mat4.identity().times(Mat4.translation([20,5,0]));
+        this.shapes.poop.draw(graphics_state, poop_mat, this.materials.poop);
+
+
 
         //testing pratical system:
         if (!this.tree_pause) {
@@ -277,7 +291,6 @@ class Assignment_Three_Scene extends Scene_Component {
                 if (apple_t > 1){
                     apple_t = 1;
                 }
-                console.log(apple_t);
                 model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t])).times(Mat4.translation([0,-2,0]));;
                 this.shapes.grass.draw(graphics_state, model_transform, this.materials.grass.override({color: Color.of(1,0,0,1)}));
             }
