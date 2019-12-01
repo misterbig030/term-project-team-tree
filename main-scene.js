@@ -511,7 +511,7 @@ class Assignment_Three_Scene extends Scene_Component {
             0.8, 1.5, 1, Mat4.translation([0, start_y, 0]));
 
 
-        this.draw_newton(graphics_state, t, dt);
+        //this.draw_newton(graphics_state, t, dt);
     }
     recursive_draw(graphics_state, start_x, start_y, xz_t, y_t, a, b, c, mt = Mat4.identity(), r_percentage = 1, pre_offset = 1){
         //let noise = this.random_array[Math.floor((start_x + 1) * start_y * a * b * c) % 10] ** 2;
@@ -566,8 +566,32 @@ class Assignment_Three_Scene extends Scene_Component {
                     this.shapes.cylinder.draw(graphics_state, apple_transform, this.materials.wood);
                 }
                 model_transform = model_transform.times(Mat4.scale([apple_t, apple_t, apple_t]))
-                    .times(Mat4.translation([0,0.3,0]))
-                    .times(Mat4.scale([1,1,0.3]));
+                    //.times(Mat4.translation([0,0.3,0]))
+                    .times(Mat4.scale([1,1,0.3]))
+                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(1,1,0)))
+                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(-1,0,0)))
+                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(-1,1,0)));
+                this.shapes.grass1.draw(graphics_state, model_transform, this.materials.grass1);
+            }
+            for (let offset of [0.4, 0.6, 0.8]) {
+                let end_x = a * Math.pow(this.cylinder_h * offset, b);
+                let end_y = this.cylinder_h * c * offset;
+                let pass_out_mt = mt.times(random_rotation).times(Mat4.translation([end_x, end_y, 0]));
+                model_transform = world_translation.times(pass_out_mt);
+                let leaf_t = 0;
+                let new_y_t = (y_t - this.cylinder_h * offset / this.y_speed);
+                if (new_y_t > 0){
+                    leaf_t = 0.05 * new_y_t;
+                }
+                if (leaf_t > 1){
+                    leaf_t = 1;
+                }
+                model_transform = model_transform.times(Mat4.scale([leaf_t, leaf_t, leaf_t]))
+                //.times(Mat4.translation([0,0.3,0]))
+                    .times(Mat4.scale([1,1,0.3]))
+                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(1,1,0)))
+                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(-1,0,0)))
+                    .times(Mat4.rotation(Math.PI * offset * end_y, Vec.of(-1,1,0)));
                 this.shapes.grass1.draw(graphics_state, model_transform, this.materials.grass1);
             }
         }
