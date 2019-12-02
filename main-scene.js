@@ -56,6 +56,7 @@ class Assignment_Three_Scene extends Scene_Component {
             hair: new Hair(40,50),
             body: new Cylinder(15,15),
             foot: new Cube(),
+            years: new Square(),
         }
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
         shapes.ground.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
@@ -151,6 +152,11 @@ class Assignment_Three_Scene extends Scene_Component {
                         ambient: 1,
                         texture: context.get_instance("assets/clothes2.jpg"),
                     }),
+                years: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1), {
+                        ambient: 1,
+                        texture: context.get_instance("assets/2000.jpg"),
+                    }),
             };
 
         this.lights = [new Light(Vec.of(0, 10, 5, 1), Color.of(0, 1, 1, 1), 1000)];
@@ -183,15 +189,16 @@ class Assignment_Three_Scene extends Scene_Component {
         this.rain_t = -1;
 
 
-        var x = document.getElementById("BGM"); 
-        x.play(); 
+        // var x = document.getElementById("BGM"); 
+        // x.play(); 
 
         this.animation_t = 0;
         this.animation_pause = true;
 
         this.tmp_cloud_t = 0;
 
-
+        this.bird_audio = false;
+        this.years_audio = false;
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
@@ -286,6 +293,8 @@ class Assignment_Three_Scene extends Scene_Component {
 
         if(this.celebrate){
             this.cel_t += dt;
+            var x = document.getElementById("woohoo"); 
+            x.play(); 
             hair_transform = hair_transform.times(Mat4.translation([0,0,this.cel_t*3]));
         }
         
@@ -419,9 +428,12 @@ class Assignment_Three_Scene extends Scene_Component {
 
     drop_apple(graphics_state, h,t){
         let apple_transform = Mat4.identity();
+
         if (17-t > h){
             apple_transform = apple_transform.times(Mat4.translation([5, 17-t, -10]));
         }else if (17 - t > h - 1){
+            var x = document.getElementById("appleFall"); 
+            x.play(); 
             apple_transform = apple_transform.times(Mat4.translation([5, t - 17 + 2 * h, -2*(t - 17 + h) -10]));
         }else if (17 - t > h - 2){
             apple_transform = apple_transform.times(Mat4.translation([5, 19 - t, -2*(t - 17 + h)-10]));
@@ -492,10 +504,21 @@ class Assignment_Three_Scene extends Scene_Component {
 
     }
 
+    draw_2000(graphics_state){
+        this.shapes.years.draw(graphics_state, Mat4.identity().times(Mat4.translation([0,8,8])).times(Mat4.scale([18,18,18])).times(Mat4.rotation(Math.PI/12, Vec.of(-1,0,0))), this.materials.years);
+        if(!this.years_audio){
+            var x = document.getElementById("sponge"); 
+            x.play(); 
+            this.years_audio = true;
+        }
+    }
+
     display(graphics_state) {
         //this.set_camera(graphics_state);
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
+
+        this.draw_2000(graphics_state);
 
         if (!this.animation_pause){
             this.animation_t += dt;
@@ -513,6 +536,11 @@ class Assignment_Three_Scene extends Scene_Component {
             this.bird_t += dt;
         }
         if (this.bird_t < 20 && this.bird_t > -10) {
+            if(!this.bird_audio && this.bird_t > -5){
+                var x = document.getElementById("bird"); 
+                x.play(); 
+                this.bird_audio = true;
+            }
             this.draw_bird(graphics_state, this.bird_t);
         }
 
@@ -549,6 +577,7 @@ class Assignment_Three_Scene extends Scene_Component {
         }
 
         if (this.bird_t < 20 && this.bird_t > -10) {
+            
             this.draw_bird(graphics_state, this.bird_t);
         }
 

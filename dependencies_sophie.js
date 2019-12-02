@@ -1,3 +1,13 @@
+window.Two_thousand_years = window.classes.Two_thousand_years =
+    class Two_thousand_years extends Shape
+    {
+        constructor()
+        { super( "positions", "normals", "texture_coords" );                      // Start from the following equilateral tetrahedron:
+            Square.insert_transformed_copy_into(this, Mat4.scale([200,200,2]));
+        }
+
+    };
+
 window.Cylinder = window.classes.Cylinder =
     class Cylinder extends Shape
     { constructor( rows, columns )
