@@ -57,6 +57,7 @@ class Assignment_Three_Scene extends Scene_Component {
             body: new Cylinder(15,15),
             foot: new Cube(),
             years: new Square(),
+            square: new Square(),
         }
         shapes.apple.texture_coords = shapes.apple.texture_coords.map(v => Vec.of(v[0] * 0.1, v[1] * 0.1));
         shapes.ground.texture_coords = shapes.ground.texture_coords.map(v => Vec.of(v[0] * 1, v[1] * 1));
@@ -72,6 +73,12 @@ class Assignment_Three_Scene extends Scene_Component {
             {
                 rain: context.get_instance(Phong_Shader).material(this.rain_color, {ambient:0.7, diffusivity:1}),
                 wood: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
+                fma: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1),{
+                        ambient:0.5,
+                        texture: context.get_instance("assets/fma.jpg"),
+                    }
+                ),
                 main_trunk: context.get_instance(Phong_Shader_Cylinder).material(
                     Color.of(0, 0, 0, 1), {
                         ambient: 0.5,
@@ -293,6 +300,12 @@ class Assignment_Three_Scene extends Scene_Component {
             this.context.global.animate = 0;
         });
     };
+
+    draw_fma(graphics_state, t){
+        let mt = Mat4.translation([-30,10,-30]);
+        mt = mt.times(Mat4.scale([10,10,1]));
+        this.shapes.square.draw(graphics_state, mt, this.materials.fma);
+    }
 
     draw_newton(graphics_state, t, dt){
         //hair
@@ -535,6 +548,9 @@ class Assignment_Three_Scene extends Scene_Component {
         graphics_state.lights = this.lights;        // Use the lights stored in this.lights.
         const t = graphics_state.animation_time / 1000, dt = graphics_state.animation_delta_time / 1000;
 
+        if(this.celebrate){
+            this.draw_fma(graphics_state, t);
+        }
 
         if (!this.animation_pause){
             this.animation_t += dt;
