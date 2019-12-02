@@ -186,6 +186,7 @@ class Assignment_Three_Scene extends Scene_Component {
         this.animation_pause = true;
 
         this.tmp_cloud_t = 0;
+        this.poop_t = -5;
 
     }
 
@@ -429,13 +430,21 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
     }
 
-    drop_poop(graphics_state, t) {
+    drop_poop(graphics_state, t){
+        //poop-------------------------------------------------------------------------
+        let poop_mat = Mat4.identity();
+        poop_mat = poop_mat.times(Mat4.translation([0, -0.8*((t+5)**2),0]));
+        poop_mat = poop_mat.times(Mat4.translation([10*t, 20,-10]));
+        //poop_mat = poop_mat.times(Mat4.scale([0.8,0.8,0.8]));
+        poop_mat = poop_mat.times(Mat4.scale([(t+5)/5,(t+5)/5,(t+5)/5]));
+        this.shapes.poop.draw(graphics_state, poop_mat, this.materials.poop);
 
         //if (poop lands){
         // this.cloud_pause = false;
         //}
     }
 
+    //bird
     draw_bird(graphics_state, t){
         const yellow = Color.of( 1,1,0,1 );
         const black = Color.of(0,0,0,1);
@@ -465,6 +474,7 @@ class Assignment_Three_Scene extends Scene_Component {
 
         var rotate_angle = Math.PI / 2 * (1 + Math.cos(2 * Math.PI * t));
 
+        
         let inner_wing = bird_transform.times(Mat4.translation([-1, -0.5, -1]))
             .times(Mat4.rotation(rotate_angle, Vec.of(0,1,0) ) )
             .times(Mat4.scale([1, 0.7, 2]));
@@ -509,6 +519,7 @@ class Assignment_Three_Scene extends Scene_Component {
         }
         if (this.bird_t < 20 && this.bird_t > -10) {
             this.draw_bird(graphics_state, this.bird_t);
+
         }
 
         if (!this.cloud_pause) {
@@ -546,6 +557,17 @@ class Assignment_Three_Scene extends Scene_Component {
         if (this.bird_t < 20 && this.bird_t > -10) {
             this.draw_bird(graphics_state, this.bird_t);
         }
+
+        //this.poop_t +=dt;
+        if (this.bird_t > -10 && this.bird_t < 0) {
+            this.drop_poop(graphics_state, this.bird_t);
+        }
+        if(this.bird_t >= 0 && this.bird_t < 20) //cloud time
+        {
+            let poop_mat2 = Mat4.identity().times(Mat4.translation([0,0,-10]));
+            this.shapes.poop.draw(graphics_state, poop_mat2, this.materials.poop);
+        }
+
 
 
 
@@ -587,9 +609,7 @@ class Assignment_Three_Scene extends Scene_Component {
             }
         }
 
-        //poop
-        //let poop_mat = Mat4.identity().times(Mat4.translation([20, 5, 0]));
-        //this.shapes.poop.draw(graphics_state, poop_mat, this.materials.poop);
+
 
 
         if (!this.tree_pause) {
