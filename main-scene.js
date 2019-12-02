@@ -180,6 +180,9 @@ class Assignment_Three_Scene extends Scene_Component {
 
         this.rain_on = false;;
         this.rain_t = -1;
+
+        var x = document.getElementById("BGM"); 
+        x.play(); 
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
