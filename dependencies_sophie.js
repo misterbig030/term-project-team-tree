@@ -169,6 +169,17 @@ window.Poop = window.classes.Poop =
 
     };
 
+// //2000 years later
+// window.Two_thousand_years = window.classes.Two_thousand_years =
+//     class Two_thousand_years extends Shape
+//     {
+//         constructor( max_subdivisions )
+//         { super( "positions", "normals", "texture_coords" );                      // Start from the following equilateral tetrahedron:
+//             Square.insert_transformed_copy_into(this, Mat4.scale([200,200,2]));
+//         }
+//
+//     };
+
 // window.Poop_Shader = window.classes.Poop_Shader =
 //     class Poop_Shader extends Shader          // THE DEFAULT SHADER: This uses the Phong Reflection Model, with optional Gouraud shading.
 //                                                // Wikipedia has good defintions for these concepts.  Subclasses of class Shader each store

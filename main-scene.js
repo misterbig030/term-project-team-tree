@@ -73,10 +73,22 @@ class Assignment_Three_Scene extends Scene_Component {
             {
                 rain: context.get_instance(Phong_Shader).material(this.rain_color, {ambient:0.7, diffusivity:1}),
                 wood: context.get_instance(Phong_Shader).material(Color.of(153 / 255, 76 / 255, 0, 1), {ambient: 0.4}),
-                fma: context.get_instance(Phong_Shader).material(
+                fma_1: context.get_instance(Phong_Shader).material(
                     Color.of(0,0,0,1),{
-                        ambient:0.5,
-                        texture: context.get_instance("assets/fma.jpg"),
+                        ambient:1,
+                        texture: context.get_instance("assets/fma_1.jpg"),
+                    }
+                ),
+                fma_2: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1),{
+                        ambient:1,
+                        texture: context.get_instance("assets/fma_2.jpg"),
+                    }
+                ),
+                fma_3: context.get_instance(Phong_Shader).material(
+                    Color.of(0,0,0,1),{
+                        ambient:1,
+                        texture: context.get_instance("assets/fma_3.jpg"),
                     }
                 ),
                 main_trunk: context.get_instance(Phong_Shader_Cylinder).material(
@@ -210,59 +222,67 @@ class Assignment_Three_Scene extends Scene_Component {
         this.newton_start = false;
 
 
-
         this.bird_audio = false;
         this.years_audio = false;
+
+        this.apple_audio = false;
+        this.tree_a = document.getElementById("tree_grow");
+
+        this.woohoo = document.getElementById("woohoo");
+        this.apple_fall_a = document.getElementById("appleFall");
+        this.two_thousand_a = document.getElementById("sponge");
+        this.rain_a = document.getElementById("rain_fall");
+        this.bird = document.getElementById("bird");
     }
 
     make_control_panel()            // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
     {
         //this.key_triggered_button("View solar system", ["0"], () => this.attached = () => this.initial_camera_location);
-        this.key_triggered_button("tree pause/resume", ["9"], () => this.tree_pause = !this.tree_pause);
-        this.key_triggered_button("tree start reset", ["9"], () => {
-            this.tree_xz_t = 0;
-            this.tree_y_t = 0;
-            this.tree_pause = false;
-        });
-        this.key_triggered_button("bird pause/resume", ["9"], () => this.bird_pause = !this.bird_pause);
-        this.new_line();
-        this.key_triggered_button("bird reset", ["9"], () => {
-            this.bird_pause = false;
-            this.bird_t = -5;
-        });
-        this.key_triggered_button("rain reset", ['9'], () => {
-            this.rain_on = true;
-            this.rain_t = -1;
-        });
-        this.new_line();
-        for (let i=0; i<4; i++) {
-            this.key_triggered_button("camera " + i.toString(10), [i.toString(10)], () => {
-                if (this.current_camera == 0 && this.camera_lock) {
-                    this.camera_lock = false;
-                } else {
-                    this.camera_lock = true;
-                }
-                this.current_camera = i;
-                console.log(this.current_camera);
-            })
-        }
-        this.new_line();
-        this.key_triggered_button("cloud pause/resume", ["9"], () => this.cloud_pause = !this.cloud_pause);
-        this.key_triggered_button("cloud reset", ["9"], () => {
-            this.cloud_pause = false;
-            this.cloud_t = -5;
-        });
-        this.key_triggered_button("apple pause/resume", ["9"], () => this.apple_pause = !this.apple_pause);
-        this.key_triggered_button("apple reset", ["9"], () => {
-                this.cloud_pause = false;
-                this.cloud_t = -5;
-        })
-        this.key_triggered_button("celebrate", ["9"], () => {
-            this.celebrate = !this.celebrate;
-            this.cel_t = 0;
-        });
-        this.new_line();
-        this.key_triggered_button("animation reset", ["="], () => {
+        //this.key_triggered_button("tree pause/resume", ["9"], () => this.tree_pause = !this.tree_pause);
+        //this.key_triggered_button("tree start reset", ["9"], () => {
+        //    this.tree_xz_t = 0;
+        //    this.tree_y_t = 0;
+        //    this.tree_pause = false;
+        //});
+        //this.key_triggered_button("bird pause/resume", ["9"], () => this.bird_pause = !this.bird_pause);
+        //this.new_line();
+        //this.key_triggered_button("bird reset", ["9"], () => {
+        //    this.bird_pause = false;
+        //    this.bird_t = -5;
+        //});
+        //this.key_triggered_button("rain reset", ['9'], () => {
+        //    this.rain_on = true;
+        //    this.rain_t = -1;
+        //});
+        //this.new_line();
+        //for (let i=0; i<4; i++) {
+        //    this.key_triggered_button("camera " + i.toString(10), [i.toString(10)], () => {
+        //        if (this.current_camera == 0 && this.camera_lock) {
+        //            this.camera_lock = false;
+        //        } else {
+        //            this.camera_lock = true;
+        //        }
+        //        this.current_camera = i;
+        //        console.log(this.current_camera);
+        //    })
+        //}
+        //this.new_line();
+        //this.key_triggered_button("cloud pause/resume", ["9"], () => this.cloud_pause = !this.cloud_pause);
+        //this.key_triggered_button("cloud reset", ["9"], () => {
+        //    this.cloud_pause = false;
+        //    this.cloud_t = -5;
+        //});
+        //this.key_triggered_button("apple pause/resume", ["9"], () => this.apple_pause = !this.apple_pause);
+        //this.key_triggered_button("apple reset", ["9"], () => {
+        //        this.cloud_pause = false;
+        //        this.cloud_t = -5;
+        //})
+        //this.key_triggered_button("celebrate", ["9"], () => {
+        //    this.celebrate = !this.celebrate;
+        //    this.cel_t = 0;
+        //});
+        //this.new_line();
+        this.key_triggered_button("animation reset", ["0"], () => {
             this.animation_t = 0;
             this.animation_pause = false;
             this.tree_pause = true;
@@ -294,17 +314,37 @@ class Assignment_Three_Scene extends Scene_Component {
             this.tmp_cloud_t = 0;
             this.newton_t = -5;
             this.newton_start = false;
+
+
+            this.bird_audio = false;
+            this.years_audio = false;
+
+            this.apple_audio = false;
+            this.tree_a.pause();
+            this.woohoo.pause();
+            this.apple_fall_a.pause();
+            this.two_thousand_a.pause();
+            this.rain_a.pause();
+            this.bird.pause();
         });
-        this.key_triggered_button("animation pause/resume", ["p"], () => {
-            this.animation_pause = !this.animation_pause;
-            this.context.global.animate = 0;
-        });
+        //this.key_triggered_button("animation pause/resume", ["p"], () => {
+        //    this.animation_pause = !this.animation_pause;
+        //    this.context.global.animate = 0;
+        //});
     };
 
     draw_fma(graphics_state, t){
-        let mt = Mat4.translation([-30,10,-30]);
-        mt = mt.times(Mat4.scale([10,10,1]));
-        this.shapes.square.draw(graphics_state, mt, this.materials.fma);
+        let mt = Mat4.identity();
+        mt = mt.times(Mat4.translation([-40,7,-30]));
+        mt = mt.times(Mat4.scale([7,7,1]));
+        this.shapes.square.draw(graphics_state, mt, this.materials.fma_1);
+
+        mt = Mat4.translation([-26,7,-30]);
+        mt = mt.times(Mat4.scale([7,7,1]));
+        this.shapes.square.draw(graphics_state, mt, this.materials.fma_2);
+        mt = Mat4.translation([-12,7,-30]);
+        mt = mt.times(Mat4.scale([7,7,1]));
+        this.shapes.square.draw(graphics_state, mt, this.materials.fma_3);
     }
 
     draw_newton(graphics_state, t, dt){
@@ -313,8 +353,7 @@ class Assignment_Three_Scene extends Scene_Component {
 
         if(this.celebrate){
             this.cel_t += dt;
-            var x = document.getElementById("woohoo"); 
-            x.play(); 
+            this.woohoo.play();
             hair_transform = hair_transform.times(Mat4.translation([0,0,this.cel_t*3]));
         }
         
@@ -446,25 +485,65 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.cloud.draw(graphics_state, cloud3, this.materials.cloud.override({ambient:0.73}));
     }
 
-    drop_apple(graphics_state, h,t){
+    drop_apple_1(graphics_state, t){
+        let apple_transform = Mat4.identity();
+//<<<<<<< HEAD
+//
+//        if (17-t > h){
+//            apple_transform = apple_transform.times(Mat4.translation([5, 17-t, -10]));
+//        }else if (17 - t > h - 1){
+//            var x = document.getElementById("appleFall");
+//            x.play();
+//            apple_transform = apple_transform.times(Mat4.translation([5, t - 17 + 2 * h, -2*(t - 17 + h) -10]));
+//        }else if (17 - t > h - 2){
+//            apple_transform = apple_transform.times(Mat4.translation([5, 19 - t, -2*(t - 17 + h)-10]));
+//        }else if (17 + 2 - t > 0){
+//            apple_transform = apple_transform.times(Mat4.translation([5, 19 - t, -14]));
+//        }else{
+//            apple_transform = apple_transform.times(Mat4.translation([5, 0, -14]));
+//            this.celebrate = true;
+//        }
+//=======
+        apple_transform = apple_transform.times(Mat4.translation([5, 17, -10]));
+        apple_transform = apple_transform.times(Mat4.translation([0, -(t ** 2), 0]));
+        //apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
+        this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+    }
+
+    drop_apple_2(graphics_state, t){
         let apple_transform = Mat4.identity();
 
-        if (17-t > h){
-            apple_transform = apple_transform.times(Mat4.translation([5, 17-t, -10]));
-        }else if (17 - t > h - 1){
-            var x = document.getElementById("appleFall"); 
-            x.play(); 
-            apple_transform = apple_transform.times(Mat4.translation([5, t - 17 + 2 * h, -2*(t - 17 + h) -10]));
-        }else if (17 - t > h - 2){
-            apple_transform = apple_transform.times(Mat4.translation([5, 19 - t, -2*(t - 17 + h)-10]));
-        }else if (17 + 2 - t > 0){
-            apple_transform = apple_transform.times(Mat4.translation([5, 19 - t, -14]));
-        }else{
-            apple_transform = apple_transform.times(Mat4.translation([5, 0, -14]));
-            this.celebrate = true;
-        }
-        apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
+        //  2s
+            apple_transform = Mat4.identity().times(Mat4.translation([5, 8, -10]));
+            apple_transform = apple_transform.times(Mat4.translation([0.5*(t**2), 0, 0]));
+            apple_transform = apple_transform.times(Mat4.translation([0, t, 0]));
+            //apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
+            this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+            if (!this.apple_audio){
+                this.apple_fall_a.play();
+                this.apple_audio = true;
+            }
+
+
+    }
+    drop_apple_3(graphics_state, t){
+        let apple_transform = Mat4.identity();
+
+        //5s
+        apple_transform = Mat4.identity().times(Mat4.translation([7, 10, -10]));
+        apple_transform = apple_transform.times(Mat4.translation([t, 0, 0]));
+        apple_transform = apple_transform.times(Mat4.translation([0, -0.38*(t**2),  0]));
+        //apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
         this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+
+    }
+    drop_apple_4(graphics_state, t){
+        let apple_transform = Mat4.identity();
+        apple_transform = Mat4.identity().times(Mat4.translation([12, 0.6, -10]));
+        //apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
+        this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+        this.celebrate = true;
+
     }
 
     drop_poop(graphics_state, t){
@@ -473,7 +552,7 @@ class Assignment_Three_Scene extends Scene_Component {
         poop_mat = poop_mat.times(Mat4.translation([0, -0.8*((t+5)**2),0]));
         poop_mat = poop_mat.times(Mat4.translation([10*t, 20,-10]));
         //poop_mat = poop_mat.times(Mat4.scale([0.8,0.8,0.8]));
-        poop_mat = poop_mat.times(Mat4.scale([(t+5)/5,(t+5)/5,(t+5)/5]));
+        poop_mat = poop_mat.times(Mat4.scale([1.5*(t+5)/5,1.5*(t+5)/5,1.5*(t+5)/5]));
         this.shapes.poop.draw(graphics_state, poop_mat, this.materials.poop);
 
         //if (poop lands){
@@ -509,17 +588,17 @@ class Assignment_Three_Scene extends Scene_Component {
             .times(Mat4.scale([0.7, 0.5, 0.5]));
         this.shapes.tri.draw(graphics_state, mouth, this.plastic.override({color: red}));
 
-        var rotate_angle = Math.PI / 2 * (1 + Math.cos(2 * Math.PI * t));
+        var rotate_angle = Math.PI / 2.2 * (1 + Math.cos(2 * Math.PI * t));
 
         
         let inner_wing = bird_transform.times(Mat4.translation([-1, -0.5, -1]))
             .times(Mat4.rotation(rotate_angle, Vec.of(0,1,0) ) )
-            .times(Mat4.scale([1, 0.7, 2]));
+            .times(Mat4.scale([1.5, 1, 2]));
         this.shapes.tri.draw(graphics_state, inner_wing, this.plastic.override({color: gold}));
 
         let outer_wing = bird_transform.times(Mat4.translation([-1, -0.5, 1]))
             .times(Mat4.rotation(rotate_angle, Vec.of(0,1,0) ) )
-            .times(Mat4.scale([1,0.7,2]));
+            .times(Mat4.scale([1.5,1,2]));
         this.shapes.tri.draw(graphics_state, outer_wing, this.plastic.override({color: gold}));
     }
 
@@ -535,10 +614,9 @@ class Assignment_Three_Scene extends Scene_Component {
     }
 
     draw_2000(graphics_state){
-        this.shapes.years.draw(graphics_state, Mat4.identity().times(Mat4.translation([0,8,12])).times(Mat4.scale([18,18,18])).times(Mat4.rotation(Math.PI/12, Vec.of(-1,0,0))), this.materials.years);
+        this.shapes.years.draw(graphics_state, Mat4.identity().times(Mat4.translation([0,12,18])).times(Mat4.scale([18,18,18])).times(Mat4.rotation(Math.PI/12, Vec.of(-1,0,0))), this.materials.years);
         if(!this.years_audio){
-            var x = document.getElementById("sponge"); 
-            x.play(); 
+            this.two_thousand_a.play();
             this.years_audio = true;
         }
     }
@@ -562,6 +640,10 @@ class Assignment_Three_Scene extends Scene_Component {
         let duration = 5;
         if (this.rain_t < duration + 4 && this.rain_t > 0){
             this.draw_rain(graphics_state, this.rain_t, duration);
+            this.rain_a.play();
+            if (this.rain_t > duration + 2){
+                this.rain_a.pause();
+            }
         }
 
         if (!this.bird_pause) {
@@ -569,8 +651,7 @@ class Assignment_Three_Scene extends Scene_Component {
         }
         if (this.bird_t < 20 && this.bird_t > -10) {
             if(!this.bird_audio && this.bird_t > -5){
-                var x = document.getElementById("bird"); 
-                x.play(); 
+                this.bird.play();
                 this.bird_audio = true;
             }
             this.draw_bird(graphics_state, this.bird_t);
@@ -617,8 +698,25 @@ class Assignment_Three_Scene extends Scene_Component {
         if (!this.apple_pause) {
             this.apple_t += dt;
         }
-        if (this.apple_t > 0 && this.apple_t < 30) {
-            this.drop_apple(graphics_state, 8, 3 * this.apple_t);
+        // if (this.apple_t > 0 && this.apple_t < 30) {
+        //     this.drop_apple(graphics_state, 8,  this.apple_t);
+        // }
+
+        if(this.apple_t > 0 && this.apple_t < 3)
+        {
+            this.drop_apple_1(graphics_state, this.apple_t);
+        }
+        if(this.apple_t > 3 && this.apple_t < 5)
+        {
+            this.drop_apple_2(graphics_state, this.apple_t-3);
+        }
+        if(this.apple_t > 5 && this.apple_t < 10)
+        {
+            this.drop_apple_3(graphics_state, this.apple_t-5);
+        }
+        if(this.apple_t > 10)
+        {
+            this.drop_apple_4(graphics_state, this.apple_t-10);
         }
 
         //this.poop_t +=dt;
@@ -628,7 +726,7 @@ class Assignment_Three_Scene extends Scene_Component {
         if(this.bird_t >= 0 && this.bird_t < 10) //cloud time
         {
             this.cloud_pause = false;
-            let poop_mat2 = Mat4.identity().times(Mat4.translation([0,0,-10]));
+            let poop_mat2 = Mat4.identity().times(Mat4.translation([0,0.5,-10])).times(Mat4.scale([1.5,1.5,1.5]));
             this.shapes.poop.draw(graphics_state, poop_mat2, this.materials.poop);
         }
 
@@ -664,7 +762,7 @@ class Assignment_Three_Scene extends Scene_Component {
         //let offset;
         let field_gap = 20;
         let rand;
-        for (let i = this.x_lower_bound + 10; i < this.x_upper_bound - 15; i += field_gap) {
+        for (let i = this.x_lower_bound + 8; i < this.x_upper_bound - 15; i += field_gap) {
             for (let j = this.z_lower_bound - 5; j < this.z_upper_bound - 20; j += field_gap) {
                 grass_transform = Mat4.translation([i + 10, 0, j + 14]).times(grass_transform.times(shear_mat));
                 this.shapes.field.draw(graphics_state, grass_transform, this.materials.bunch_grass);
@@ -682,7 +780,14 @@ class Assignment_Three_Scene extends Scene_Component {
         if (this.tree_xz_t <= 0 && this.tree_y_t <= 0){
             return;
         }
-        //root
+
+        if (this.tree_y_t >0 && this.tree_y_t < 25) {
+            this.tree_a.play();
+        }
+        if (this.tree_y_t > 25){
+            this.tree_a.pause();
+        }
+            //root
         model_transform = Mat4.identity();
         model_transform = model_transform.times(Mat4.translation([0, 3, -10]));
         model_transform = model_transform.times(Mat4.rotation(Math.PI / 5, Vec.of(0, 1, 0)));
