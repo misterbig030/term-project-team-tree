@@ -413,21 +413,42 @@ class Assignment_Three_Scene extends Scene_Component {
         this.shapes.cloud.draw(graphics_state, cloud3, this.materials.cloud.override({ambient:0.73}));
     }
 
-    drop_apple(graphics_state, h,t){
+    drop_apple_1(graphics_state, t){
         let apple_transform = Mat4.identity();
-        if (17-t > h){
-            apple_transform = apple_transform.times(Mat4.translation([5, 17-t, -10]));
-        }else if (17 - t > h - 1){
-            apple_transform = apple_transform.times(Mat4.translation([5, t - 17 + 2 * h, -2*(t - 17 + h) -10]));
-        }else if (17 - t > h - 2){
-            apple_transform = apple_transform.times(Mat4.translation([5, 19 - t, -2*(t - 17 + h)-10]));
-        }else if (17 + 2 - t > 0){
-            apple_transform = apple_transform.times(Mat4.translation([5, 19 - t, -14]));
-        }else{
-            apple_transform = apple_transform.times(Mat4.translation([5, 0, -14]));
-        }
+        apple_transform = apple_transform.times(Mat4.translation([5, 17, -10]));
+        apple_transform = apple_transform.times(Mat4.translation([0, -(t ** 2), 0]));
         apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
         this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+    }
+
+    drop_apple_2(graphics_state, t){
+        let apple_transform = Mat4.identity();
+
+        //  2s
+            apple_transform = Mat4.identity().times(Mat4.translation([5, 8, -10]));
+            apple_transform = apple_transform.times(Mat4.translation([0.5*(t**2), 0, 0]));
+            apple_transform = apple_transform.times(Mat4.translation([0, t, 0]));
+            apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
+            this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+
+    }
+    drop_apple_3(graphics_state, t){
+        let apple_transform = Mat4.identity();
+
+        //5s
+        apple_transform = Mat4.identity().times(Mat4.translation([7, 10, -10]));
+        apple_transform = apple_transform.times(Mat4.translation([t, 0, 0]));
+        apple_transform = apple_transform.times(Mat4.translation([0, -0.38*(t**2),  0]));
+        apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
+        this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+
+    }
+    drop_apple_4(graphics_state, t){
+        let apple_transform = Mat4.identity();
+        apple_transform = Mat4.identity().times(Mat4.translation([12, 0.5, -10]));
+        apple_transform = apple_transform.times(Mat4.scale([0.7,0.7,0.7]));
+        this.shapes.apple.draw(graphics_state, apple_transform, this.materials.apple);
+
     }
 
     drop_poop(graphics_state, t){
@@ -550,8 +571,25 @@ class Assignment_Three_Scene extends Scene_Component {
         if (!this.apple_pause) {
             this.apple_t += dt;
         }
-        if (this.apple_t > 0 && this.apple_t < 30) {
-            this.drop_apple(graphics_state, 8, 3 * this.apple_t);
+        // if (this.apple_t > 0 && this.apple_t < 30) {
+        //     this.drop_apple(graphics_state, 8,  this.apple_t);
+        // }
+
+        if(this.apple_t > 0 && this.apple_t < 3)
+        {
+            this.drop_apple_1(graphics_state, this.apple_t);
+        }
+        if(this.apple_t > 3 && this.apple_t < 5)
+        {
+            this.drop_apple_2(graphics_state, this.apple_t-3);
+        }
+        if(this.apple_t > 5 && this.apple_t < 10)
+        {
+            this.drop_apple_3(graphics_state, this.apple_t-5);
+        }
+        if(this.apple_t > 10)
+        {
+            this.drop_apple_4(graphics_state, this.apple_t-10);
         }
 
         if (this.bird_t < 20 && this.bird_t > -10) {
@@ -601,7 +639,7 @@ class Assignment_Three_Scene extends Scene_Component {
         //let offset;
         let field_gap = 20;
         let rand;
-        for (let i = this.x_lower_bound + 10; i < this.x_upper_bound - 15; i += field_gap) {
+        for (let i = this.x_lower_bound + 8; i < this.x_upper_bound - 15; i += field_gap) {
             for (let j = this.z_lower_bound - 5; j < this.z_upper_bound - 20; j += field_gap) {
                 grass_transform = Mat4.translation([i + 10, 0, j + 14]).times(grass_transform.times(shear_mat));
                 this.shapes.field.draw(graphics_state, grass_transform, this.materials.bunch_grass);
