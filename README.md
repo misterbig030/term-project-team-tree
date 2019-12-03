@@ -37,7 +37,7 @@ Finally I changed the practical cylinder with two faces of a cube (front and top
 - leaves:Created leaves shade by scaling the Grass object and applied texture mapping on leaves.
 - cloud: Created cloud shade by scaling the sphere object and achieve the movement by using transform matrix with respect to time. Different cloudhave different z buffer and different amibient to achieve the real look.
 - bird: Created a bird by combining three spheres as head, body and the eye and three triangle as the wings and mouth. I also applied matrix transformation with respect to time to achieve the movement of the bird along the change of time. Except the head, all the other component are built on the head matrix so that all the compoents can move together while flying.
-- apple fall: calculate the initial postion of the apple falls and implement the orignal staight falls track.
+- apple fall: calculate the initial postion of the apple falls and implement the orignal staight falls track. Implement the time within the cloud display so that it shows up after the cloud fly out.
 - Help finding sound effect sources such as spongebob, applefall, bird_fly_then_rain, woohoo. 
 
  
